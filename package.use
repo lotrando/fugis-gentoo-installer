@@ -1,0 +1,12 @@
+# package.use file -> /etc/portage/package.use
+# (c) 2024
+
+# MEDIA-FONTS
+media-fonts/terminus-font -ru-g
+
+# SYS-BOOT
+sys-boot/grub mount
+
+# SYS-KERNEL
+sys-kernel/linux-firmware initramfs
+sys-kernel/zen-sources symlink
