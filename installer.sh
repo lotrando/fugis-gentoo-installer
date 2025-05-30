@@ -1129,16 +1129,13 @@ emerge genkernel f2fs-tools dosfstools linux-firmware zen-sources && genkernel a
 emerge grub terminus-font sudo
 
 # GRUB configuration
-cat > /etc/default/grub << 'GRUB_BLOCK_END'
+cat >> /etc/default/grub << 'GRUB_BLOCK_END'
 GRUB_GFXMODE=1920x1080x32
 GRUB_GFXPAYLOAD_LINUX=keep
 GRUB_DISABLE_OS_PROBER=true
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
-
-# Update grub resolution config
-sed -i "s/1920x1080x32/$GRUB_GFX_MODE/g" /etc/default/grub
 
 # Users and passwords
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
