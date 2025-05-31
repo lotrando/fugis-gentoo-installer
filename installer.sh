@@ -965,7 +965,7 @@ chmod 1777 /dev/shm
 
 optimize_makeopts() {
     # Detect CPU makeopts
-    GENTOO_MAKEOPTS="MAKEOPTS=\"-j$(nproc)\""
+    GENTOO_MAKEOPTS="-j$(nproc)"
 }
 
 optimize_cpu_flags() {
@@ -1031,7 +1031,7 @@ wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> /etc/portage/make.conf
-echo $GENTOO_MAKEOPTS >> /etc/portage/make.conf
+echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> /etc/portage/make.conf
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
