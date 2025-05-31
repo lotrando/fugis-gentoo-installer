@@ -1039,11 +1039,9 @@ wget -q "${GENTOO_INSTALLER_URL}/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 
-cat > /etc/portage/make.conf << 'CPU_BLOCK_END'
-    echo "$GENTOO_MAKEOPTS" >> /etc/portage/make.conf
-    echo "$GENTOO_CPUFLAGS" >> /etc/portage/make.conf
-    echo "$GENTOO_VIDEO_CARDS" >> /etc/portage/make.conf
-CPU_BLOCK_END
+echo $GENTOO_MAKEOPTS >> /etc/portage/make.conf
+echo $GENTOO_CPUFLAGS >> /etc/portage/make.conf
+echo $GENTOO_VIDEO_CARDS >> /etc/portage/make.conf
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
