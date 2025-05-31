@@ -965,16 +965,25 @@ chmod 1777 /dev/shm
 
 optimize_use_flags() {
     # Detekce CPU funkcí
-    GENTOO_CPUFLAGS=$(cpuid2cpuflags)
+    GENTOO_CPUFLAGS="CPU_FLAGS_X86=$(cpuid2cpuflags)"
 }
 
 optimize_makeopts() {
-    GENTOO_MAKEOPTS="-j$(nproc)"
+    GENTOO_MAKEOPTS="MAKEOPTS=-j$(nproc)"
+}
+
+optimize_gpu() {
+    if lspci | grep -i nvidia; then
+        GENTOO_VIDEO_CARDS="VIDEO_CARDS=\"nvidia\""
+    elif lspci | grep -i amd; then
+        GENTOO_VIDEO_CARDS="VIDEO_CARDS=\"amdgpu radeonsi\""
+    fi
 }
 
 log_info "✓ Optimize CPU Flags"
 optimize_use_flags
 optimize_makeopts
+optimize_gpu
 
 # Create improved chroot script
 log_info "✓ Creating chroot installation script"
@@ -984,6 +993,7 @@ log_info "✓ Creating configuration for chroot"
 cat > /mnt/gentoo/tmp/chroot_config << EOF
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
+GENTOO_VIDEO_CARDS="$GENTOO_VIDEO_CARDS"
 GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
@@ -1032,13 +1042,8 @@ wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 cat > /etc/portage/make.conf << 'CPU_BLOCK_END'
     echo "$GENTOO_MAKEOPTS" >> /etc/portage/make.conf
     echo "$GENTOO_CPUFLAGS" >> /etc/portage/make.conf
+    echo "$GENTOO_VIDEO_CARDS" >> /etc/portage/make.conf
 CPU_BLOCK_END
-
-if lspci | grep -i nvidia; then
-    echo "VIDEO_CARDS=\"nvidia\"" >> /etc/portage/make.conf
-elif lspci | grep -i amd; then
-    echo "VIDEO_CARDS=\"amdgpu radeonsi\"" >> /etc/portage/make.conf
-fi
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
