@@ -965,11 +965,11 @@ chmod 1777 /dev/shm
 
 optimize_use_flags() {
     # Detekce CPU funkcí
-    $GENTOO_CPUFLAGS=$(cpuid2cpuflags)
+    GENTOO_CPUFLAGS=$(cpuid2cpuflags)
 }
 
 optimize_makeopts() {
-    $GENTOO_MAKEOPTS="-j$(nproc)"
+    GENTOO_MAKEOPTS="-j$(nproc)"
 }
 
 log_info "✓ Optimize CPU Flags"
