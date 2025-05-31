@@ -963,13 +963,28 @@ test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
 
+optimize_makeopts() {
+    # Detect CPU makeopts
+    GENTOO_MAKEOPTS="MAKEOPTS=\"-j$(nproc)\""
+}
+
+optimize_cpu_flags() {
+    # Detect CPU flags
+    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
+}
+
+log_info "✓ Optimize CPU Flags"
+optimize_use_flags
+optimize_makeopts
+
 # Create improved chroot script
 log_info "✓ Creating chroot installation script"
 # Před vstupem do chroot vytvořit konfigurační soubor:
 log_info "✓ Creating configuration for chroot"
 
 cat > /mnt/gentoo/tmp/chroot_config << EOF
-
+GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
+GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
 GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
@@ -1014,6 +1029,9 @@ wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
 wget -q "${GENTOO_INSTALLER_URL}/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
+
+echo CPU_FLAGS=\"$GENTOO_CPUFLAGS\" >> /etc/portage/make.conf
+echo $GENTOO_CPUFLAGS >> /etc/portage/make.conf
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
