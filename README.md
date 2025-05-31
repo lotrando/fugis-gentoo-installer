@@ -9,17 +9,20 @@
 ### How to use this script ?
 - download minimal installation CD from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
 - create bootable USB stick
-- boot from USB stick or CD ISO
+
 #### 1. Download and run script
 - download [script](https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh) from GitHub
 - save script to USB stick
 - optionaly edit token for Gist and Gist ID
 - make script executable and run script
+- boot from USB stick or CD ISO
 ```
 chmod +x installer.sh && ./installer.sh
 ```
 
+
 #### 2. Run downloaded script direct from shell
+- boot from USB stick or CD ISO
 - in command line run two command lines
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
