@@ -129,7 +129,8 @@ chmod +x installer.sh && ./installer.sh
 - click Generate new token (classic) GitHub may ask you to confirm your password
 - note: Expiration: set to Never.
 - click Generate token
-- paste Token into the script for save config to Gist or paste existing Gist ID into the script for load or update Gist config.
+- paste Token into the script for save config to Gist or
+- paste existing Gist ID into the script for load or update Gist config.
 
 IMPORTANT: The token will only appear once! Copy it.
 
