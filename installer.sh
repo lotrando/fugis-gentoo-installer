@@ -229,6 +229,7 @@ SWAP_SIZE="${SWAP_SIZE:-2048}"
 SWAPFILE_SIZE="${SWAPFILE_SIZE:-1024}"
 SWAPFILE_PATH="${SWAPFILE_PATH:-/swapfile}"
 
+# Configure SWAP partition
 configure_swap_partition() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
 
@@ -255,7 +256,7 @@ configure_swap_partition() {
     done
 }
 
-# Configure swap file
+# Configure SWAP file
 configure_swap_file() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
     RECOMMENDED_SWAP=$((TOTAL_RAM / 2))
@@ -275,7 +276,7 @@ configure_swap_file() {
     SWAPFILE_PATH=${input:-${SWAPFILE_PATH:-/swapfile}}
 }
 
-# Svave config function
+# Save config function
 save_config() {
     cat > "$GENTOO_CONFIG_FILE" <<EOF
 UEFI_DISK_SIZE="$UEFI_DISK_SIZE"
@@ -332,6 +333,7 @@ RESET='\033[0m'
 
 # Initialize clean log file
 echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
+
 trap 'handle_error $LINENO' ERR
 set -e
 trap cleanup EXIT
@@ -961,12 +963,27 @@ test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
 
+optimize_use_flags() {
+    # Detekce CPU funkcí
+    $GENTOO_CPUFLAGS=$(cpuid2cpuflags)
+}
+
+optimize_makeopts() {
+    $GENTOO_MAKEOPTS="-j$(nproc)"
+}
+
+log_info "✓ Optimize CPU Flags"
+optimize_use_flags
+optimize_makeopts
+
 # Create improved chroot script
 log_info "✓ Creating chroot installation script"
 # Před vstupem do chroot vytvořit konfigurační soubor:
 log_info "✓ Creating configuration for chroot"
 
 cat > /mnt/gentoo/tmp/chroot_config << EOF
+GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
+GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
 GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
@@ -1011,6 +1028,17 @@ wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
 wget -q "${GENTOO_INSTALLER_URL}/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
+
+cat > /etc/portage/make.conf << 'CPU_BLOCK_END'
+    echo "$GENTOO_MAKEOPTS" >> /etc/portage/make.conf
+    echo "$GENTOO_CPUFLAGS" >> /etc/portage/make.conf
+CPU_BLOCK_END
+
+if lspci | grep -i nvidia; then
+    echo "VIDEO_CARDS=\"nvidia\"" >> /etc/portage/make.conf
+elif lspci | grep -i amd; then
+    echo "VIDEO_CARDS=\"amdgpu radeonsi\"" >> /etc/portage/make.conf
+fi
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
