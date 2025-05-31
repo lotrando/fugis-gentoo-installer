@@ -973,8 +973,8 @@ optimize_cpu_flags() {
     GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
 }
 
-log_info "✓ Optimize CPU Flags"
-optimize_use_flags
+log_info "✓ Optimize CPU"
+optimize_cpu_flags
 optimize_makeopts
 
 # Create improved chroot script
