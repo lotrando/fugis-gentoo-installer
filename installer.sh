@@ -963,37 +963,13 @@ test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
 
-optimize_use_flags() {
-    # Detekce CPU funkcí
-    GENTOO_CPUFLAGS="CPU_FLAGS_X86=$(cpuid2cpuflags)"
-}
-
-optimize_makeopts() {
-    GENTOO_MAKEOPTS="MAKEOPTS=-j$(nproc)"
-}
-
-optimize_gpu() {
-    if lspci | grep -i nvidia; then
-        GENTOO_VIDEO_CARDS="VIDEO_CARDS=\"nvidia\""
-    elif lspci | grep -i amd; then
-        GENTOO_VIDEO_CARDS="VIDEO_CARDS=\"amdgpu radeonsi\""
-    fi
-}
-
-log_info "✓ Optimize CPU Flags"
-optimize_use_flags
-optimize_makeopts
-optimize_gpu
-
 # Create improved chroot script
 log_info "✓ Creating chroot installation script"
 # Před vstupem do chroot vytvořit konfigurační soubor:
 log_info "✓ Creating configuration for chroot"
 
 cat > /mnt/gentoo/tmp/chroot_config << EOF
-GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
-GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
-GENTOO_VIDEO_CARDS="$GENTOO_VIDEO_CARDS"
+
 GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
@@ -1038,10 +1014,6 @@ wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
 wget -q "${GENTOO_INSTALLER_URL}/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
-
-echo $GENTOO_MAKEOPTS >> /etc/portage/make.conf
-echo $GENTOO_CPUFLAGS >> /etc/portage/make.conf
-echo $GENTOO_VIDEO_CARDS >> /etc/portage/make.conf
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
