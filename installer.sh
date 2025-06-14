@@ -33,6 +33,9 @@ GITHUB_TOKEN=""
 # Your Gist ID for updates (leave empty to create new)
 GITHUB_GIST_ID=""
 
+# Setup default terminal
+export TERM=xterm-256color
+
 # Load config fom file if exists. I not exists prompt for load config from Gist and gist ID
 load_config() {
     if [[ -f "$GENTOO_CONFIG_FILE" ]]; then
@@ -1100,7 +1103,8 @@ sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/env.d/02locale
 
 locale-gen --quiet
 echo "$GENTOO_ZONEINFO" > /etc/timezone
-env-update --quiet && source /etc/profile >/dev/null 2>&1
+env-update >/dev/null 2>&1
+source /etc/profile >/dev/null 2>&1
 
 # Swap configuration
 case "$SWAP_TYPE" in
