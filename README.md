@@ -44,6 +44,9 @@ chmod +x installer.sh && ./installer.sh
 ### In the current version, these preferences are currently possible
 #### note: in brackets are the default script variables without fugis.conf file
 
+- UEFI size: <b>[1024]</b>
+- SWAP Mode: <b>interactive choose</b>
+- SWAP Size: <b>[2048]</b>
 - User name: <b>[user]</b>
 - User password: <b>[toor]</b>
 - Root password: <b>[toor]</b>
@@ -56,11 +59,8 @@ chmod +x installer.sh && ./installer.sh
 - Target Disk: <b>interactive choose</b>
 - Network Interface: <b>interactive choose</b>
 - Network Mode: <b>interactive choose</b>
-- SWAP Mode: <b>interactive choose</b>
-- UEFI size: <b>[1024]</b>
-- SWAP Size: <b>[2048]</b>
 
-### This script install only contain 32 important packages and kernel
+### This script install only contain 26 important packages and kernel
 
 #### Kernel Build part
 ```
@@ -77,28 +77,22 @@ chmod +x installer.sh && ./installer.sh
 ```
 #### Packages Install part
 ```
-(11) acct-group/nullmail
-(12) sys-apps/hwdata
-(13) virtual/libudev
-(14) x11-base/xorg-proto
-(15) media-libs/libpng
-(16) app-text/mandoc
-(17) sys-fs/fuse-common
-(18) app-admin/metalog
-(19) acct-user/nullmail
-(20) sys-fs/lvm2
-(21) sys-apps/pciutils
-(22) x11-apps/bdftopcf
-(23) media-libs/freetype
-(24) sys-libs/efivar
-(25) sys-fs/fuse
-(26) sys-boot/efibootmgr
-(27) virtual/logger
-(28) media-fonts/terminus-font
-(29) mail-mta/nullmailer
-(30) sys-boot/grub
-(31) virtual/mta
-(32) app-admin/sudo
+(11) sys-apps/hwdata
+(12) virtual/libudev
+(13) x11-base/xorg-proto
+(14) media-libs/libpng
+(15) app-text/mandoc
+(16) sys-fs/fuse-common
+(17) sys-fs/lvm2
+(18) sys-apps/pciutils
+(19) x11-apps/bdftopcf
+(20) media-libs/freetype
+(21) sys-libs/efivar
+(22) sys-fs/fuse
+(23) sys-boot/efibootmgr
+(24) media-fonts/terminus-font
+(25) sys-boot/grub
+(26) app-admin/sudo
 ```
 
 ### Installation steps
@@ -113,6 +107,7 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Extracting stage3: stage3-amd64-openrc-20250518T165514Z.tar.xz
 [INFO] ✓ Cleaning up downloaded tarball
 [INFO] ✓ Mounting system filesystems
+[INFO] ✓ Optimize CPU
 [INFO] ✓ Creating chroot installation script
 [INFO] ✓ Entering chroot and starting installation
 [INFO] ✓ Installation completed successfully!

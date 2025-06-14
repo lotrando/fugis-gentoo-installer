@@ -1,6 +1,9 @@
 # package.use file -> /etc/portage/package.use
 # (c) 2025
 
+# APP-ADMIN
+app-admin/sudo -sendmail
+
 # MEDIA-FONTS
 media-fonts/terminus-font -ru-g
 
