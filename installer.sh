@@ -1193,6 +1193,9 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                    INSTALLATION COMPLETE !                     ║${RESET}"
 echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed    ║${RESET}"
 echo -e "${GREEN}║     You can now reboot and enjoy your new system! Lotrando     ║${RESET}"
+echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
+echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
+echo -e "${GREEN}║                    sudo emerge -avUDu @world                   ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
 
 log_info "✓ Installation completed successfully!"
