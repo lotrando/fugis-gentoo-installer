@@ -1,5 +1,5 @@
 # package.license file -> /etc/portage/package.license
-# (c) 2024
+# (c) 2025
 
 # SYS-KERNEL
 sys-kernel/linux-firmware linux-fw-redistributable no-source-code

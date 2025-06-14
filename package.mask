@@ -1,2 +1,2 @@
 # package.mask file -> /etc/portage/package.mask
-# (c) 2024
+# (c) 2025

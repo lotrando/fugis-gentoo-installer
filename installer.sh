@@ -1016,7 +1016,7 @@ cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 # Načtení konfigurace
 source /tmp/chroot_config
 
-emerge-webrsync
+emerge-webrsync --quiet
 
 cd /etc/portage/
 rm -f make.conf
@@ -1098,9 +1098,9 @@ LC_COLLATE="C"
 LOCALE_ENV_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/env.d/02locale
 
-locale-gen
+locale-gen --quiet
 echo "$GENTOO_ZONEINFO" > /etc/timezone
-env-update && source /etc/profile
+env-update --quiet && source /etc/profile >/dev/null 2>&1
 
 # Swap configuration
 case "$SWAP_TYPE" in

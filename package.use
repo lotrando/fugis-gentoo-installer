@@ -1,5 +1,5 @@
 # package.use file -> /etc/portage/package.use
-# (c) 2024
+# (c) 2025
 
 # MEDIA-FONTS
 media-fonts/terminus-font -ru-g
