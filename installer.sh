@@ -23,83 +23,216 @@
 # FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
 # make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
 
+GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
+
+# Optional parameters for create and save config to gist
+# Your Gist token (optional) insert your token for create gist with fugis.conf
+GITHUB_TOKEN=""
+# Optional parameters for load config from gist
+# Your Gist ID (optional) insert your gist id for download fugis.conf
+# Your Gist ID for updates (leave empty to create new)
+GITHUB_GIST_ID=""
+
 # Setup default terminal
 export TERM=xterm-256color
 
-GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
+# Load config fom file if exists. I not exists prompt for load config from Gist and gist ID
+load_config() {
+    if [[ -f "$GENTOO_CONFIG_FILE" ]]; then
+        source "$GENTOO_CONFIG_FILE"
+        log_info "✓ Configuration loaded from $GENTOO_CONFIG_FILE"
+    else
+        echo ""
+        read -n1 -p "$(echo -e "${YELLOW}Download config from Gist? (y/n): ${RESET}")" download_choice
+        echo ""
+        if [[ "$download_choice" == "y" || "$download_choice" == "Y" ]]; then
+            download_config_from_gist
+            if [[ -f "$GENTOO_CONFIG_FILE" ]]; then
+                source "$GENTOO_CONFIG_FILE"
+            fi
+        fi
+    fi
+}
+
+# Upload or update config to Gist
+upload_config_to_gist() {
+    # Check for gist token
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        log_warning "GitHub token not set. Skipping online config upload."
+        return 1
+    fi
+
+    # Check for config file
+    if [[ ! -f "$GENTOO_CONFIG_FILE" ]]; then
+        log_error "Configuration file not found: $GENTOO_CONFIG_FILE"
+        return 1
+    fi
+
+    # Prepare content
+    local config_content=""
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line=$(echo "$line" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+        if [[ -n "$config_content" ]]; then
+            config_content="${config_content}\\n${line}"
+        else
+            config_content="$line"
+        fi
+    done < "$GENTOO_CONFIG_FILE"
+
+    if [[ -n "$GITHUB_GIST_ID" ]]; then
+        # Update
+        update_existing_gist "$config_content"
+    else
+        # Create
+        create_new_gist "$config_content"
+    fi
+}
+
+# Create new Gist
+create_new_gist() {
+    local config_content="$1"
+
+    log_info "✓ Creating new Gist..."
+
+    local json_payload=$(cat << EOF
+{
+    "description": "FUGIS Configuration - $(date '+%Y-%m-%d %H:%M:%S')",
+    "public": false,
+    "files": {
+        "fugis.conf": {
+            "content": "$config_content"
+        }
+    }
+}
+EOF
+)
+
+    local response=$(curl -s -w "\n%{http_code}" -X POST \
+        -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        https://api.github.com/gists)
+
+    local http_code=$(echo "$response" | tail -n1)
+    local json_response=$(echo "$response" | head -n -1)
+
+    if [[ "$http_code" != "201" ]]; then
+        log_error "GitHub API returned HTTP $http_code"
+        local error_msg=$(echo "$json_response" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+        if [[ -n "$error_msg" ]]; then
+            log_error "GitHub API error: $error_msg"
+        fi
+        return 1
+    fi
+
+    local gist_url=$(echo "$json_response" | sed -n 's/.*"html_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
+    local gist_id=$(echo "$json_response" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
+
+    if [[ -n "$gist_url" && -n "$gist_id" ]]; then
+        echo -e "${GREEN}✓ New Gist created successfully!${RESET}"
+        echo -e "${CYAN}Gist URL: $gist_url${RESET}"
+        echo -e "${CYAN}Gist ID: $gist_id${RESET}"
+        echo -e "${YELLOW}Save this Gist ID for future updates: $gist_id${RESET}"
+
+        log_info "✓ New Gist created: $gist_url"
+        return 0
+    else
+        log_error "Failed to parse new Gist response"
+        return 1
+    fi
+}
+
+# Update existing Gist
+update_existing_gist() {
+    local config_content="$1"
+
+    log_info "✓ Updating existing Gist ID: $GITHUB_GIST_ID"
+
+    local json_payload=$(cat << EOF
+{
+    "description": "FUGIS Configuration - Updated $(date '+%Y-%m-%d %H:%M:%S')",
+    "files": {
+        "fugis.conf": {
+            "content": "$config_content"
+        }
+    }
+}
+EOF
+)
+
+    local response=$(curl -s -w "\n%{http_code}" -X PATCH \
+        -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        "https://api.github.com/gists/$GITHUB_GIST_ID")
+
+    local http_code=$(echo "$response" | tail -n1)
+    local json_response=$(echo "$response" | head -n -1)
+
+    if [[ "$http_code" != "200" ]]; then
+        log_error "Failed to update Gist. HTTP $http_code"
+        local error_msg=$(echo "$json_response" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+        if [[ -n "$error_msg" ]]; then
+            log_error "GitHub API error: $error_msg"
+        fi
+
+        # If update fails, offer to create new Gist
+        echo ""
+        read -n1 -p "$(echo -e "${YELLOW}Update failed. Create new Gist instead? (y/n): ${RESET}")" create_new
+        echo ""
+        if [[ "$create_new" == "y" || "$create_new" == "Y" ]]; then
+            create_new_gist "$config_content"
+        fi
+        return 1
+    fi
+
+    local gist_url=$(echo "$json_response" | sed -n 's/.*"html_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
+
+    if [[ -n "$gist_url" ]]; then
+       log_info "✓ Gist updated successfully!"
+        echo -e "${CYAN}Gist URL: $gist_url${RESET}"
+        echo -e "${CYAN}Gist ID: $GITHUB_GIST_ID${RESET}"
+
+        log_info "✓ Gist updated: $gist_url"
+        return 0
+    else
+        log_error "Failed to parse update response"
+        return 1
+    fi
+}
+
+# Load config from Gist
+download_config_from_gist() {
+    local gist_id="${1:-$GITHUB_GIST_ID}"
+
+    if [[ -z "$gist_id" ]]; then
+        read -p "$(echo -e "${BLUE}Enter Gist ID:${RESET} ")" gist_id
+    fi
+
+    if [[ -z "$gist_id" ]]; then
+        log_error "Gist ID is required"
+        return 1
+    fi
+
+    log_info "✓ Downloading configuration from Gist ID: $gist_id"
+
+    # Try raw URL first (simpler and more reliable)
+    local raw_url="https://gist.githubusercontent.com/raw/$gist_id/fugis.conf"
+
+    if curl -s -f "$raw_url" -o "$GENTOO_CONFIG_FILE"; then
+        log_info "✓ Configuration downloaded successfully"
+        return 0
+    else
+        log_error "Failed to download from raw URL: $raw_url"
+        return 1
+    fi
+}
+
 GENTOO_KERNEL="${GENTOO_KERNEL:-zen-sources}"
 KERNEL_NAME="${KERNEL_NAME:-Zen Sources}"
 SWAP_SIZE="${SWAP_SIZE:-2048}"
 SWAPFILE_SIZE="${SWAPFILE_SIZE:-1024}"
 SWAPFILE_PATH="${SWAPFILE_PATH:-/swapfile}"
-
-# Important settings - do not change
-GENTOO_LOG_FILE="fugis.log"
-GENTOO_CONSOLEFONT=ter-v16b
-
-# Colors
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[1;34m'
-MAGENTA='\033[1;35m'
-CYAN='\033[1;36m'
-WHITE='\033[1;37m'
-LIGHT_RED='\033[1;31m'
-LIGHT_GREEN='\033[1;32m'
-LIGHT_YELLOW='\033[1;33m'
-LIGHT_BLUE='\033[1;34m'
-LIGHT_MAGENTA='\033[1;35m'
-LIGHT_CYAN='\033[1;36m'
-UNDERLINE='\033[4m'
-RESET='\033[0m'
-
-# Logging functions
-# Initialize clean log file
-echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
-
-trap 'handle_error $LINENO' ERR
-set -e
-trap cleanup EXIT
-
-# Cleanup function
-cleanup() {
-    log_info "✓ Cleaning up..."
-    umount -R /mnt/gentoo 2>/dev/null || true
-}
-
-# Function to strip ANSI color codes
-strip_colors() {
-    sed 's/\x1b\[[0-9;]*m//g'
-}
-
-# Logging functions info
-log_info() {
-    local message="[INFO] $1"
-    echo -e "${GREEN}${message}${RESET}"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
-}
-
-# Logging functions err
-log_error() {
-    local message="[ERROR] $1"
-    echo -e "${RED}${message}${RESET}" >&2
-    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
-}
-
-# Logging functions warning
-log_warning() {
-    local message="[WARNING] $1"
-    echo -e "${YELLOW}${message}${RESET}"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
-}
-
-# Error handling
-handle_error() {
-    log_error "Script failed at line $1"
-    cleanup
-    exit 1
-}
 
 # Configure SWAP partition
 configure_swap_partition() {
@@ -148,6 +281,107 @@ configure_swap_file() {
     SWAPFILE_PATH=${input:-${SWAPFILE_PATH:-/swapfile}}
 }
 
+# Save config function
+save_config() {
+    cat > "$GENTOO_CONFIG_FILE" <<EOF
+UEFI_DISK_SIZE="$UEFI_DISK_SIZE"
+GENTOO_USER="$GENTOO_USER"
+GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
+GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
+GENTOO_HOSTNAME="$GENTOO_HOSTNAME"
+GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
+GRUB_GFX_MODE="$GRUB_GFX_MODE"
+GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
+GENTOO_KEYMAP="$GENTOO_KEYMAP"
+GENTOO_KERNEL="$GENTOO_KERNEL"
+EOF
+
+    log_info "✓ Configuration saved to $GENTOO_CONFIG_FILE"
+
+    # If GitHub token is set, offer upload/update
+    if [[ -n "$GITHUB_TOKEN" ]]; then
+        echo ""
+        if [[ -n "$GITHUB_GIST_ID" ]]; then
+            read -n1 -p "$(echo -e "${YELLOW}Update existing Gist (ID: $GITHUB_GIST_ID)? (y/n): ${RESET}")" upload_choice
+        else
+            read -n1 -p "$(echo -e "${YELLOW}Upload config to new GitHub Gist? (y/n): ${RESET}")" upload_choice
+        fi
+        echo ""
+        if [[ "$upload_choice" == "y" || "$upload_choice" == "Y" ]]; then
+            upload_config_to_gist
+        fi
+    fi
+}
+
+# Important settings - do not change
+GENTOO_CONFIG_FILE="fugis.conf"
+GENTOO_LOG_FILE="fugis.log"
+GENTOO_CONSOLEFONT=ter-v16b
+
+# Colors
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+MAGENTA='\033[1;35m'
+CYAN='\033[1;36m'
+WHITE='\033[1;37m'
+LIGHT_RED='\033[1;31m'
+LIGHT_GREEN='\033[1;32m'
+LIGHT_YELLOW='\033[1;33m'
+LIGHT_BLUE='\033[1;34m'
+LIGHT_MAGENTA='\033[1;35m'
+LIGHT_CYAN='\033[1;36m'
+UNDERLINE='\033[4m'
+RESET='\033[0m'
+
+# Logging functions
+
+# Initialize clean log file
+echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
+
+trap 'handle_error $LINENO' ERR
+set -e
+trap cleanup EXIT
+
+# Cleanup function
+cleanup() {
+    log_info "✓ Cleaning up..."
+    umount -R /mnt/gentoo 2>/dev/null || true
+}
+
+# Function to strip ANSI color codes
+strip_colors() {
+    sed 's/\x1b\[[0-9;]*m//g'
+}
+
+# Logging functions info
+log_info() {
+    local message="[INFO] $1"
+    echo -e "${GREEN}${message}${RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
+}
+
+# Logging functions err
+log_error() {
+    local message="[ERROR] $1"
+    echo -e "${RED}${message}${RESET}" >&2
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
+}
+
+# Logging functions warning
+log_warning() {
+    local message="[WARNING] $1"
+    echo -e "${YELLOW}${message}${RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
+}
+
+# Error handling
+handle_error() {
+    log_error "Script failed at line $1"
+    cleanup
+    exit 1
+}
 
 # Validation functions
 validate_ip() {
@@ -226,6 +460,11 @@ for line in "${HEADER_TEXT[@]}"; do
 done
 echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
 
+if [ ! -d "/sys/firmware/efi" ]; then
+    log_error "System is not booted in EFI mode!"
+    exit 1
+fi
+
 # Prerequisites check
 log_info "✓ Checks prerequisites for installation"
 
@@ -256,6 +495,8 @@ if ! ping -c 1 8.8.8.8 &> /dev/null; then
 fi
 
 log_info "✓ All prerequisites met"
+
+load_config
 
 # Input settings function
 input_settings() {
@@ -542,6 +783,8 @@ input_settings() {
 }
 
 
+
+
 # Main input setting loop
 while true; do
     input_settings
@@ -581,6 +824,7 @@ while true; do
     read -n1 -p "$(echo -e "${YELLOW}Is everything set as you want? (y/n): ${RESET}")" confirm
     echo ""
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        save_config
         break
     else
         clear
@@ -667,7 +911,7 @@ PARTED_END
     fi
 }
 
-# Funkce pro připojení souborových systémů
+# Mount filesystems
 mount_filesystems() {
     log_info "✓ Mounting created filesystems"
 
@@ -685,13 +929,15 @@ mount_filesystems() {
         log_warning "Failed to set compression attribute (non-critical)"
     fi
 
-    if ! mkdir -p /mnt/gentoo/boot; then
-        log_error "Failed to create boot directory"
+    # Create both /boot and /boot/EFI directories
+    if ! mkdir -p /mnt/gentoo/boot/EFI; then
+        log_error "Failed to create boot/EFI directory"
         exit 1
     fi
 
-    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
-        log_error "Failed to mount boot partition"
+    # Mount EFI partition to /boot/EFI instead of /boot
+    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot/EFI; then
+        log_error "Failed to mount EFI partition"
         exit 1
     fi
 
@@ -702,21 +948,18 @@ mount_filesystems() {
     fi
 }
 
-# Detect Cores
 optimize_makeopts() {
     # Detect CPU makeopts
     GENTOO_MAKEOPTS="-j$(nproc)"
     log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
 }
 
-# Detect CPU flags
 optimize_cpu_flags() {
     # Detect CPU flags
     GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
     log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
 }
 
-# Detect GPU
 detect_gpu() {
     # GPU specifické flagy
     if lspci | grep -i nvidia &>/dev/null; then
@@ -869,7 +1112,8 @@ cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
 
-echo "${TARGET_PART}1   /boot   vfat    noatime      0 0" >> /etc/fstab
+# Change the EFI mount point from /boot to /boot/EFI
+echo "${TARGET_PART}1   /boot/EFI   vfat    noatime   0 0" >> /etc/fstab
 
 if [[ "$SWAP_TYPE" == "partition" ]]; then
     echo "${TARGET_PART}3   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
@@ -1000,7 +1244,8 @@ echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 # GRUB Installation
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
+mkdir -p /boot/EFI
+grub-install --target=x86_64-efi --efi-directory=/boot/EFI --bootloader-id=GENTOO --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services

@@ -1,8 +1,7 @@
 # FUGIS
+## Fast Universal Gentoo Installation Script
 
-### Fast Universal Gentoo Installation Script
-
-... is a debugged bash script that quickly install basic clear Gentoo Linux with loging all actions and errors and save or load config file from disk where run script or optionally from GitHub Gist.
+... is a debugged bash script that quickly install basic clear Gentoo Linux.
 
 <img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
@@ -12,22 +11,23 @@
 
 #### 1. Download and run script
 - download [script](https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh) from GitHub
-- save script to USB stick
-- optionaly edit token for Gist and Gist ID
-- make script executable and run script
-- boot from USB stick or CD ISO
+- save script to bootable USB stick
+- make script executable
 ```
-chmod +x installer.sh && ./installer.sh
+chmod +x installer.sh
+```
+- boot from USB stick and run from USB
+```
+  ./installer.sh
 ```
 
 
 #### 2. Run downloaded script direct from shell
-- boot from USB stick or CD ISO
+- boot from USB stick
 - in command line run two command lines
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
 ```
-- optionaly edit token for Gist and Gist ID
 ```
 chmod +x installer.sh && ./installer.sh
 ```
@@ -41,28 +41,9 @@ chmod +x installer.sh && ./installer.sh
 
 <img src="after_install.png" alt="Screenshot after instalation procedure" />
 
-### In the current version, these preferences are currently possible
-#### note: in brackets are the default script variables without fugis.conf file
-
-- UEFI size: <b>[1024]</b>
-- SWAP Mode: <b>interactive choose</b>
-- SWAP Size: <b>[2048]</b>
-- User name: <b>[user]</b>
-- User password: <b>[toor]</b>
-- Root password: <b>[toor]</b>
-- Hostname: <b>[gentoo]</b>
-- Domainname: <b>[gentoo.dev]</b>
-- GRUB Resolution: <b>[1920x1080x32]</b>
-- Locale: <b>interactive choose</b>
-- Keymap: <b>[us]</b>
-- Timezone: <b>[Europe/Prague]</b>
-- Target Disk: <b>interactive choose</b>
-- Network Interface: <b>interactive choose</b>
-- Network Mode: <b>interactive choose</b>
-
 ### This script install only contain 26 important packages and kernel
 
-#### Kernel Build part
+#### Kernel Build part [ with zen kernel]
 ```
 (01) dev-libs/elfutils
 (02) virtual/libelf
@@ -103,29 +84,16 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Creating filesystems
 [INFO] ✓ Mounting filesystems
 [INFO] ✓ Downloading latest stage3 tarball
-[INFO] ✓ Downloading: stage3-amd64-openrc-20250518T165514Z.tar.xz
-[INFO] ✓ Extracting stage3: stage3-amd64-openrc-20250518T165514Z.tar.xz
+[INFO] ✓ Downloading: stage3-amd64-openrc-xxxxxxxxxxxxx.tar.xz
+[INFO] ✓ Extracting stage3: stage3-amd64-openrc-xxxxxxxxxxxxx.tar.xz
 [INFO] ✓ Cleaning up downloaded tarball
-[INFO] ✓ Mounting system filesystems
-[INFO] ✓ Optimize CPU
+[INFO] ✓ Mounting [proc sys dev run] filesystems
+[INFO] ✓ Detected AMD GPU
+[INFO] ✓ Detect CPU flags: aes avx avx2 bmi1 bmi2 f16c fma3 mmx mmxext pclmul popcnt rdrand sse sse2 sse3 sse4_1 sse4_2 ssse3
+[INFO] ✓ Detect MAKEOPTS: -j6
+[INFO] ✓ Creating configuration for chroot
 [INFO] ✓ Creating chroot installation script
 [INFO] ✓ Entering chroot and starting installation
 [INFO] ✓ Installation completed successfully!
 [INFO] ✓ Cleaning up...
 ```
-
-### Configuration save to Github Gist
-#### To get a GitHub Personal Access Token for Gist, follow these steps:
-
-- go to github.com and log in
-- click on your avatar (top right) and select Settings
-- click on Developer settings in the left menu at the very bottom
-- click on Personal access tokens and select Tokens (classic)
-- click Generate new token (classic) GitHub may ask you to confirm your password
-- note: Expiration: set to Never.
-- click Generate token
-- paste Token into the script for save config to Gist or
-- paste existing Gist ID into the script for load or update Gist config.
-
-IMPORTANT: The token will only appear once! Copy it.
-
