@@ -334,33 +334,26 @@ input_settings() {
     echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (default - optimized for desktop)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (latest development kernel)${RESET}"
     echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
-    echo -e "${YELLOW}4.${RESET} ${WHITE}Gentoo Sources BIN (stable with Gentoo patches binary)${RESET}"
 
     while true; do
         echo ""
-        read -p "$(echo -e "${BLUE}Choose kernel type (1-4):${RESET} ")" kernel_choice
+        read -p "$(echo -e "${BLUE}Choose kernel type (1-3):${RESET} ")" kernel_choice
         case "$kernel_choice" in
             1)
-                GENTOO_KERNEL="zen-sources linux-firmware"
+                GENTOO_KERNEL="zen-sources"
                 KERNEL_NAME="Zen Sources"
                 echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
                 break
                 ;;
             2)
-                GENTOO_KERNEL="git-sources linux-firmware"
+                GENTOO_KERNEL="git-sources"
                 KERNEL_NAME="Git Sources"
                 echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
                 break
                 ;;
             3)
-                GENTOO_KERNEL="gentoo-sources linux-firmware"
+                GENTOO_KERNEL="gentoo-sources"
                 KERNEL_NAME="Gentoo Sources"
-                echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
-                break
-                ;;
-            4)
-                GENTOO_KERNEL="linux-firmware gentoo-kernel-bin"
-                KERNEL_NAME="Gentoo Sources Binary"
                 echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
                 break
                 ;;
@@ -902,7 +895,7 @@ source /etc/profile >/dev/null 2>&1
 
 # Kernel and packages
 emerge ${GENTOO_KERNEL}
-emerge genkernel && genkernel all
+emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # GRUB configuration
