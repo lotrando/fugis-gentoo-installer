@@ -979,9 +979,9 @@ optimize_cpu_flags() {
 detect_gpu() {
 # GPU specifické flagy
     if lspci | grep -i nvidia; then
-        GENTOO_GPU="\"nvidia\""
+        GENTOO_GPU="nvidia"
     elif lspci | grep -i amd; then
-        GENTOO_GPU="\"amdgpu radeonsi\""
+        GENTOO_GPU="amdgpu radeonsi"
     fi
 }
 
