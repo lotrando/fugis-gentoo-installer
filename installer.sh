@@ -55,7 +55,6 @@ UNDERLINE='\033[4m'
 RESET='\033[0m'
 
 # Logging functions
-
 # Initialize clean log file
 echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
 
@@ -101,6 +100,54 @@ handle_error() {
     cleanup
     exit 1
 }
+
+# Configure SWAP partition
+configure_swap_partition() {
+    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
+
+    # Doporučená velikost podle RAM
+    if [ "$TOTAL_RAM" -le 2048 ]; then
+        RECOMMENDED_SWAP=$((TOTAL_RAM * 2))
+    elif [ "$TOTAL_RAM" -le 8192 ]; then
+        RECOMMENDED_SWAP=$TOTAL_RAM
+    else
+        RECOMMENDED_SWAP=8192
+    fi
+
+    echo ""
+    echo -e "${CYAN}Recommended swap partition size: ${RECOMMENDED_SWAP} MB${RESET}"
+
+    while true; do
+        read -p "Swap partition size in MB [$(echo -e "${GREEN}${SWAP_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
+        SWAP_SIZE=${input:-${SWAP_SIZE:-$RECOMMENDED_SWAP}}
+        if [[ "$SWAP_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAP_SIZE" -ge 512 ]; then
+            break
+        else
+            log_error "Swap size must be a number >= 512 MB"
+        fi
+    done
+}
+
+# Configure SWAP file
+configure_swap_file() {
+    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
+    RECOMMENDED_SWAP=$((TOTAL_RAM / 2))
+
+    echo ""
+    while true; do
+        read -p "Swap file size in MB [$(echo -e "${GREEN}${SWAPFILE_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
+        SWAPFILE_SIZE=${input:-${SWAPFILE_SIZE:-$RECOMMENDED_SWAP}}
+        if [[ "$SWAPFILE_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAPFILE_SIZE" -ge 512 ]; then
+            break
+        else
+            log_error "The swap file size must be a number >= 512 MB"
+        fi
+    done
+
+    read -p "Path to the swap file [$(echo -e "${GREEN}${SWAPFILE_PATH:-/swapfile}${RESET}")]: " input
+    SWAPFILE_PATH=${input:-${SWAPFILE_PATH:-/swapfile}}
+}
+
 
 # Validation functions
 validate_ip() {
@@ -654,53 +701,6 @@ mount_filesystems() {
         log_info "✓ Activating swap partition"
         swapon ${TARGET_PART}2
     fi
-}
-
-# Configure SWAP partition
-configure_swap_partition() {
-    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
-
-    # Doporučená velikost podle RAM
-    if [ "$TOTAL_RAM" -le 2048 ]; then
-        RECOMMENDED_SWAP=$((TOTAL_RAM * 2))
-    elif [ "$TOTAL_RAM" -le 8192 ]; then
-        RECOMMENDED_SWAP=$TOTAL_RAM
-    else
-        RECOMMENDED_SWAP=8192
-    fi
-
-    echo ""
-    echo -e "${CYAN}Recommended swap partition size: ${RECOMMENDED_SWAP} MB${RESET}"
-
-    while true; do
-        read -p "Swap partition size in MB [$(echo -e "${GREEN}${SWAP_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
-        SWAP_SIZE=${input:-${SWAP_SIZE:-$RECOMMENDED_SWAP}}
-        if [[ "$SWAP_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAP_SIZE" -ge 512 ]; then
-            break
-        else
-            log_error "Swap size must be a number >= 512 MB"
-        fi
-    done
-}
-
-# Configure SWAP file
-configure_swap_file() {
-    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
-    RECOMMENDED_SWAP=$((TOTAL_RAM / 2))
-
-    echo ""
-    while true; do
-        read -p "Swap file size in MB [$(echo -e "${GREEN}${SWAPFILE_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
-        SWAPFILE_SIZE=${input:-${SWAPFILE_SIZE:-$RECOMMENDED_SWAP}}
-        if [[ "$SWAPFILE_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAPFILE_SIZE" -ge 512 ]; then
-            break
-        else
-            log_error "The swap file size must be a number >= 512 MB"
-        fi
-    done
-
-    read -p "Path to the swap file [$(echo -e "${GREEN}${SWAPFILE_PATH:-/swapfile}${RESET}")]: " input
-    SWAPFILE_PATH=${input:-${SWAPFILE_PATH:-/swapfile}}
 }
 
 # Detect Cores
