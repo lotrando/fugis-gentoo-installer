@@ -10,23 +10,21 @@
 #    ░    ╚═╝      ╚═════╝  ╚═════╝ ╚═╝╚══════╝     ░
 #    ░                                              ░
 #    ░  Fast Universal Gentoo Installation Script   ░
-#    ░    Created by Realist (c) 2023-2025 v1.8     ░
+#    ░    Created by Lotrando (c) 2024-2025 v1.8     ░
 #    ░                                              ░
 #    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 # Fast Universal Gentoo Installation Script (c) 2023 - 2025 v 1.8
-# with interactive setup, zstd compression on F2FS
-
-# This script is designed to be run from a live environment CD or USB
+# This script is designed to be run from a live environment from USB
 # It will install Gentoo Linux on the specified target partition
 
 # FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
 # make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
+
 export TERM=xterm-256color
+clear
 
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
-GENTOO_LOG_FILE="fugis.log"
-GENTOO_CONSOLEFONT=ter-v16b
 
 # Colors
 RED='\033[1;31m'
@@ -46,10 +44,10 @@ UNDERLINE='\033[4m'
 RESET='\033[0m'
 
 # Logging functions
+GENTOO_LOG_FILE="fugis.log"
 
 # Initialize clean log file
 echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
-
 trap 'handle_error $LINENO' ERR
 set -e
 trap cleanup EXIT
@@ -93,7 +91,7 @@ handle_error() {
     exit 1
 }
 
-# Validation functions
+# Validation for IP
 validate_ip() {
     local ip=$1
     if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
@@ -155,7 +153,6 @@ validate_username() {
 configure_swap_partition() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
 
-    # Doporučená velikost podle RAM
     if [ "$TOTAL_RAM" -le 2048 ]; then
         RECOMMENDED_SWAP=$((TOTAL_RAM * 2))
     elif [ "$TOTAL_RAM" -le 8192 ]; then
@@ -182,7 +179,7 @@ configure_swap_partition() {
 HEADER_TEXT=(
     "               - F U G I S -               "
     " Fast Universal Gentoo Installation Script "
-    "   Created by Realist (c) 2024-2025 v1.8   "
+    "   Created by Lotrando (c) 2024-2025 v1.8   "
 )
 
 HEADER_WIDTH=0
@@ -230,7 +227,8 @@ log_info "✓ All prerequisites met"
 
 # Input settings function
 input_settings() {
-    # UEFI partition size
+
+    # UEFI partition size input
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}UEFI partition size in MB:${RESET}"
     echo ""
@@ -244,7 +242,7 @@ input_settings() {
         fi
     done
 
-    # Swap configuration
+    # SWAP configuration input
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}SWAP config:${RESET}"
     echo ""
@@ -277,6 +275,7 @@ input_settings() {
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Users and passwords:${RESET}"
     echo ""
 
+    # User name validation
     while true; do
         read -p "Enter username [$(echo -e "${GREEN}${GENTOO_USER:-user}${RESET}")]: " input
         GENTOO_USER=${input:-${GENTOO_USER:-user}}
@@ -287,6 +286,7 @@ input_settings() {
         fi
     done
 
+    # User password validation
     while true; do
         read -s -p "Enter user password [$(echo -e "${GREEN}${GENTOO_USER_PASSWORD:-toor}${RESET}")]: " input
         echo ""
@@ -298,6 +298,7 @@ input_settings() {
         fi
     done
 
+    # Root password validation
     while true; do
         read -s -p "Enter root password [$(echo -e "${GREEN}${GENTOO_ROOT_PASSWORD:-toor}${RESET}")]: " input
         echo ""
@@ -309,7 +310,7 @@ input_settings() {
         fi
     done
 
-    # Hostname and domain with validation
+    # Hostname and domain validation
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Setup computer:${RESET}"
     echo ""
@@ -331,8 +332,8 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Kernel selection:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (default - optimized for desktop)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (latest development kernel)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (optimized for desktop)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (development kernel)${RESET}"
     echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
 
     while true; do
@@ -391,7 +392,6 @@ input_settings() {
 
     read -p "Enter timezone [$(echo -e "${GREEN}${GENTOO_ZONEINFO:-Europe/Prague}${RESET}")]: " input
     GENTOO_ZONEINFO=${input:-${GENTOO_ZONEINFO:-Europe/Prague}}
-
 
     # Disk selection
     DISKS=($(lsblk -d -n -o NAME | awk '{print "/dev/" $1}'))
@@ -505,9 +505,6 @@ input_settings() {
 
 }
 
-
-
-
 # Main input setting loop
 while true; do
     input_settings
@@ -565,6 +562,7 @@ log_info "✓ Starting installation process..."
 log_info "✓ Starting disk setup"
 
 create_disk_partitions() {
+    # Create partitions
     log_info "✓ Creating partitions on ${TARGET_DISK}"
 
     if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
@@ -776,7 +774,6 @@ GENTOO_KERNEL="$GENTOO_KERNEL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
 GENTOO_HOSTNAME="$GENTOO_HOSTNAME"
-GENTOO_CONSOLEFONT="$GENTOO_CONSOLEFONT"
 GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
 NET_MODE="$NET_MODE"
 TARGET_LAN="$TARGET_LAN"
@@ -839,7 +836,7 @@ fi
 
 # System configuration
 sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
-sed -i "s/default8x16/$GENTOO_CONSOLEFONT/g" /etc/conf.d/consolefont
+sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 

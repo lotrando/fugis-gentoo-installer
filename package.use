@@ -1,5 +1,4 @@
 # package.use file -> /etc/portage/package.use
-# (c) 2025
 
 # APP-ADMIN
 app-admin/sudo -sendmail
@@ -15,4 +14,3 @@ sys-kernel/linux-firmware initramfs
 sys-kernel/zen-sources symlink
 sys-kernel/git-sources symlink
 sys-kernel/gentoo-sources symlink
-sys-kernel/installkernel dracut
