@@ -977,16 +977,25 @@ optimize_cpu_flags() {
 }
 
 detect_gpu() {
-# GPU specifické flagy
-    if lspci | grep -i nvidia; then
+    # GPU specifické flagy
+    if lspci | grep -i nvidia &>/dev/null; then
         GENTOO_GPU="nvidia"
-    elif lspci | grep -i amd; then
+        log_info "✓ Detected NVIDIA GPU"
+    elif lspci | grep -i amd &>/dev/null; then
         GENTOO_GPU="amdgpu radeonsi"
+        log_info "✓ Detected AMD GPU"
+    elif lspci | grep -i intel &>/dev/null; then
+        GENTOO_GPU="intel i965"
+        log_info "✓ Detected Intel GPU"
+    else
+        GENTOO_GPU="fbdev vesa"
+        log_info "✓ No specific GPU detected, using generic drivers"
     fi
 }
 
-log_info "✓ Optimize Video card GPU"
-log_info "✓ Optimize CPU"
+log_info "✓ GPU configuration: $GENTOO_GPU"
+log_info "✓ CPU flags: $GENTOO_CPUFLAGS"
+log_info "✓ Make options: $GENTOO_MAKEOPTS"
 detect_gpu
 optimize_cpu_flags
 optimize_makeopts
@@ -1045,9 +1054,13 @@ wget -q "${GENTOO_INSTALLER_URL}/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 
-echo VIDEO_CARDS=\"$GENTOO_GPU\" >> /etc/portage/make.conf
-echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> /etc/portage/make.conf
-echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> /etc/portage/make.conf
+if [[ -n "$GENTOO_GPU" ]]; then
+    echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
+else
+    echo "VIDEO_CARDS=\"fbdev vesa\"" >> make.conf
+fi
+echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
+echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
 # Make fstab
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
