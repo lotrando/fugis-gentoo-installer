@@ -1156,7 +1156,7 @@ emerge grub terminus-font sudo
 
 # GRUB configuration
 cat >> /etc/default/grub << 'GRUB_BLOCK_END'
-GRUB_GFXMODE=1920x1080x32
+GRUB_GFXMODE=${GRUB_GFX_MODE}
 GRUB_GFXPAYLOAD_LINUX=keep
 GRUB_DISABLE_OS_PROBER=true
 GRUB_DEFAULT=0
