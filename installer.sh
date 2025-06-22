@@ -795,7 +795,7 @@ EOF
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 #!/bin/bash
 
-# Načtení konfigurace
+# Chroot config load
 source /tmp/chroot_config
 
 emerge-webrsync --quiet
