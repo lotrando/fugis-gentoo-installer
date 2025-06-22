@@ -13,3 +13,5 @@ sys-boot/grub mount
 # SYS-KERNEL
 sys-kernel/linux-firmware initramfs
 sys-kernel/zen-sources symlink
+sys-kernel/git-sources symlink
+sys-kernel/gentoo-sources symlink
