@@ -10,7 +10,7 @@
 #    ░    ╚═╝      ╚═════╝  ╚═════╝ ╚═╝╚══════╝     ░
 #    ░                                              ░
 #    ░  Fast Universal Gentoo Installation Script   ░
-#    ░    Created by Lotrando (c) 2024-2025 v1.8    ░
+#    ░   Created by Lotrando (c) 2024-2025 v 1.8    ░
 #    ░                                              ░
 #    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
