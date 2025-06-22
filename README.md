@@ -39,7 +39,7 @@ chmod +x installer.sh && ./installer.sh
 
 <img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
-### This script install only contain 26 important packages and kernel if useed zen kernel sources
+### Script install only contain 26 important packages and kernel if used zen kernel sources
 
 #### Kernel Build part
 ```
