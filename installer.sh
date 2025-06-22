@@ -993,9 +993,7 @@ detect_gpu() {
     fi
 }
 
-log_info "✓ GPU configuration: $GENTOO_GPU"
 log_info "✓ CPU flags: $GENTOO_CPUFLAGS"
-log_info "✓ Make options: $GENTOO_MAKEOPTS"
 detect_gpu
 optimize_cpu_flags
 optimize_makeopts
