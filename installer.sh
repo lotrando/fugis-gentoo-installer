@@ -228,6 +228,8 @@ download_config_from_gist() {
     fi
 }
 
+GENTOO_KERNEL="${GENTOO_KERNEL:-zen-sources}"
+KERNEL_NAME="${KERNEL_NAME:-Zen Sources}"
 SWAP_SIZE="${SWAP_SIZE:-2048}"
 SWAPFILE_SIZE="${SWAPFILE_SIZE:-1024}"
 SWAPFILE_PATH="${SWAPFILE_PATH:-/swapfile}"
@@ -291,6 +293,7 @@ GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
 GRUB_GFX_MODE="$GRUB_GFX_MODE"
 GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
 GENTOO_KEYMAP="$GENTOO_KEYMAP"
+GENTOO_KERNEL="$GENTOO_KERNEL"
 EOF
 
     log_info "✓ Configuration saved to $GENTOO_CONFIG_FILE"
@@ -596,6 +599,42 @@ input_settings() {
     read -p "Enter domain name [$(echo -e "${GREEN}${GENTOO_DOMAINNAME:-gentoo.dev}${RESET}")]: " input
     GENTOO_DOMAINNAME=${input:-${GENTOO_DOMAINNAME:-gentoo.dev}}
 
+    # Kernel selection
+    echo ""
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Kernel selection:${RESET}"
+    echo ""
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (default - optimized for desktop)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (latest development kernel)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
+
+    while true; do
+        echo ""
+        read -p "$(echo -e "${BLUE}Choose kernel type (1-3):${RESET} ")" kernel_choice
+        case "$kernel_choice" in
+            1)
+                GENTOO_KERNEL="zen-sources"
+                KERNEL_NAME="Zen Sources"
+                echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
+                break
+                ;;
+            2)
+                GENTOO_KERNEL="git-sources"
+                KERNEL_NAME="Git Sources"
+                echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
+                break
+                ;;
+            3)
+                GENTOO_KERNEL="gentoo-sources"
+                KERNEL_NAME="Gentoo Sources"
+                echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
+                break
+                ;;
+            *)
+                log_error "Invalid choice. Please try again."
+                ;;
+        esac
+    done
+
     # GRUB settings
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}GRUB resolution:${RESET}"
@@ -755,6 +794,7 @@ while true; do
     echo -e "${CYAN}Root password:${RESET} ${GENTOO_ROOT_PASSWORD}"
     echo -e "${CYAN}Hostname:${RESET} ${GENTOO_HOSTNAME}"
     echo -e "${CYAN}Domain name:${RESET} ${GENTOO_DOMAINNAME}"
+    echo -e "${CYAN}Kernel:${RESET} ${KERNEL_NAME}"
     echo -e "${CYAN}GRUB Resolution:${RESET} ${GRUB_GFX_MODE}"
     echo -e "${CYAN}Timezone:${RESET} ${GENTOO_ZONEINFO}"
     echo -e "${CYAN}Keymap:${RESET} ${GENTOO_KEYMAP}"
@@ -1173,7 +1213,7 @@ ZRAM_BLOCK_END
 esac
 
 # Kernel and packages
-emerge zen-sources
+emerge ${GENTOO_KERNEL}
 emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
