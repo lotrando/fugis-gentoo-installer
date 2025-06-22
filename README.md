@@ -1,7 +1,7 @@
 # FUGIS
-## Fast Universal Gentoo Installation Script
+### Fast Universal Gentoo Installation Script
 
-... is a debugged bash script that quickly install basic clear Gentoo Linux.
+ is a debugged bash script that quickly install basic clear Gentoo Linux on your harddrive.
 
 ### How to use this script ?
 - download minimal installation CD from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
@@ -39,7 +39,7 @@ chmod +x installer.sh && ./installer.sh
 
 <img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
-#### This script install only contain 26 important packages and kernel with zen kernel sources
+### This script install only contain 26 important packages and kernel if useed zen kernel sources
 
 #### Kernel Build part
 ```
