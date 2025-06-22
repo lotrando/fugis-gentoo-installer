@@ -798,7 +798,8 @@ cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 # Chroot config load
 source /tmp/chroot_config
 
-emerge-webrsync --quiet
+emerge-webrsync &>/dev/null
+eselect news read new &>/dev/null
 
 cd /etc/portage/
 rm -f make.conf
