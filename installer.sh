@@ -1150,9 +1150,9 @@ ZRAM_BLOCK_END
 esac
 
 # Kernel and packages
-emerge zen-sources linux-firmware
-emerge genkernel f2fs-tools dosfstools && genkernel all
-emerge grub terminus-font sudo
+emerge zen-sources
+emerge linux-firmware genkernel && genkernel all
+emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # GRUB configuration
 cat >> /etc/default/grub << 'GRUB_BLOCK_END'
