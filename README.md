@@ -4,8 +4,6 @@
 
  is a debugged bash script that quickly install basic clear Gentoo Linux on your harddrive.
 
-Certainly! Here are the positives of your script in Markdown format and in English:
-
 ### Positives of the Script
 
 - **Interactive Setup:**
