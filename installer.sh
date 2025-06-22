@@ -1168,7 +1168,7 @@ echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
 useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
-# Sudo configuration
+# SUDO configuration
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 # GRUB Installation
