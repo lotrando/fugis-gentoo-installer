@@ -1,7 +1,42 @@
 # FUGIS
+---
 ### Fast Universal Gentoo Installation Script
 
  is a debugged bash script that quickly install basic clear Gentoo Linux on your harddrive.
+
+Certainly! Here are the positives of your script in Markdown format and in English:
+
+### Positives of the Script
+
+- **Interactive Setup:**
+  Guides the user step-by-step through all key installation choices (disk, user, network, kernel, locale, etc.), making it very beginner-friendly.
+
+- **Input Validation:**
+  Validates user inputs (IP, hostname, username, partition sizes, etc.), reducing the risk of errors during installation.
+
+- **Clear and Colored Output:**
+  Uses colors and formatting for outputs, making the process easy to follow and visually organized.
+
+- **Automates Routine Operations:**
+  Handles partitioning, filesystem creation, Stage3 downloading, network and locale setup, and more, minimizing manual intervention.
+
+- **Comprehensive Configuration:**
+  Sets up kernel sources, users, sudo privileges, GRUB bootloader, and essential services—all in one script.
+
+- **Logging:**
+  Logs all installation actions into a file for troubleshooting and review.
+
+- **Safety Warnings:**
+  Clearly warns the user before performing destructive operations, such as wiping the target disk.
+
+- **Hardware Detection:**
+  Detects CPU and GPU types to optimize configuration and USE flags.
+
+- **Supports Both DHCP and Static Network:**
+  Allows the user to choose between DHCP and static network setups, with proper validation.
+
+- **Swap Recommendation:**
+  Calculates and recommends swap partition size based on system RAM.
 
 ### How to use this script ?
 - download minimal installation CD from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
