@@ -581,7 +581,6 @@ while true; do
     read -n1 -p "$(echo -e "${YELLOW}Is everything set as you want? (y/n): ${RESET}")" confirm
     echo ""
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        save_config
         break
     else
         clear
