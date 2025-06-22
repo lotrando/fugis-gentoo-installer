@@ -64,19 +64,19 @@ chmod +x installer.sh && ./installer.sh
 
 #### Kernel Build part
 ```
-(01) app-text/asciidoc
-(02) sys-fs/f2fs-tools
-(03) sys-fs/dosfstools
-(04) dev-libs/elfutils
-(05) app-arch/cpio
-(06) virtual/libelf
-(07) app-alternatives/cpio
-(08) sys-kernel/linux-firmware
-(09) sys-kernel/zen-sources
-(10) sys-kernel/genkernel
+(01) dev-libs/elfutils
+(02) virtual/libelf
+(03) app-arch/cpio
+(04) app-alternatives/cpio
+(05) sys-kernel/zen-sources
+(06) sys-kernel/linux-firmware
+(07) app-text/asciidoc
+(08) sys-kernel/genkernel
 ```
 #### Packages Install part
 ```
+(09) sys-fs/dosfstools
+(10) sys-fs/f2fs-tools
 (11) sys-apps/hwdata
 (12) virtual/libudev
 (13) x11-base/xorg-proto

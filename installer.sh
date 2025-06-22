@@ -976,18 +976,29 @@ optimize_cpu_flags() {
     GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
 }
 
+detect_gpu() {
+# GPU specifické flagy
+    if lspci | grep -i nvidia; then
+        GENTOO_GPU="\"nvidia\""
+    elif lspci | grep -i amd; then
+        GENTOO_GPU="\"amdgpu radeonsi\""
+    fi
+}
+
+log_info "✓ Optimize Video card GPU"
 log_info "✓ Optimize CPU"
+detect_gpu
 optimize_cpu_flags
 optimize_makeopts
 
+# Create config file
+log_info "✓ Creating configuration for chroot"
 # Create improved chroot script
 log_info "✓ Creating chroot installation script"
-# Před vstupem do chroot vytvořit konfigurační soubor:
-log_info "✓ Creating configuration for chroot"
 
 cat > /mnt/gentoo/tmp/chroot_config << EOF
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
-GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
+GENTOO_GPU="$GENTOO_GPU"
 GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
@@ -1033,6 +1044,7 @@ wget -q "${GENTOO_INSTALLER_URL}/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 
+echo VIDEO_CARDS=\"$GENTOO_GPU\" >> /etc/portage/make.conf
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> /etc/portage/make.conf
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> /etc/portage/make.conf
 
@@ -1156,7 +1168,7 @@ emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # GRUB configuration
 cat >> /etc/default/grub << 'GRUB_BLOCK_END'
-GRUB_GFXMODE=${GRUB_GFX_MODE}
+GRUB_GFXMODE=$GRUB_GFX_MODE
 GRUB_GFXPAYLOAD_LINUX=keep
 GRUB_DISABLE_OS_PROBER=true
 GRUB_DEFAULT=0
