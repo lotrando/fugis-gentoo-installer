@@ -10,11 +10,11 @@
 #    ░    ╚═╝      ╚═════╝  ╚═════╝ ╚═╝╚══════╝     ░
 #    ░                                              ░
 #    ░  Fast Universal Gentoo Installation Script   ░
-#    ░    Created by Realist (c) 2023-2025 v1.7     ░
+#    ░    Created by Realist (c) 2023-2025 v1.8     ░
 #    ░                                              ░
 #    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-# Fast Universal Gentoo Installation Script (c) 2023 - 2025 v 1.7
+# Fast Universal Gentoo Installation Script (c) 2023 - 2025 v 1.8
 # with interactive setup, zstd compression on F2FS and ZRAM swapfile
 
 # This script is designed to be run from a live environment CD or USB
@@ -797,7 +797,7 @@ fi
 log_info "✓ Starting installation process..."
 
 # DISK SETUP with error handling
-log_info "✓ Starting disk setup..."
+log_info "✓ Starting disk setup"
 
 create_disk_partitions() {
     log_info "✓ Creating partitions on ${TARGET_DISK}"
@@ -808,7 +808,7 @@ create_disk_partitions() {
     fi
 
     if [[ "$SWAP_TYPE" == "partition" ]]; then
-        # Tři oddíly: UEFI, SWAP, ROOT
+        # UEFI, SWAP, ROOT
         if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
 unit mib
 mkpart primary fat32 1 ${UEFI_DISK_SIZE}
@@ -853,7 +853,7 @@ PARTED_END
     fi
 
     # Make filesystems
-    log_info "✓ Creating filesystems"
+    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
 
     if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
         log_error "Failed to create UEFI filesystem"
@@ -868,7 +868,7 @@ PARTED_END
 
 # Funkce pro připojení souborových systémů
 mount_filesystems() {
-    log_info "✓ Mounting filesystems"
+    log_info "✓ Mounting created filesystems"
 
     if ! mkdir -p /mnt/gentoo; then
         log_error "Failed to create mount point"
@@ -901,79 +901,16 @@ mount_filesystems() {
     fi
 }
 
-create_disk_partitions
-mount_filesystems
-
-cd /mnt/gentoo
-
-# Stage 3 download with error handling
-log_info "✓ Downloading latest stage3 tarball"
-
-GENTOO_RELEASES_URL="https://mirror.dkm.cz/gentoo/releases"
-STAGE3_PATH_URL="$GENTOO_RELEASES_URL/amd64/autobuilds/latest-stage3-amd64-openrc.txt"
-
-if ! STAGE3_URL=$(curl -s "$STAGE3_PATH_URL" | grep -Eo '([0-9TZ]+/stage3-amd64-openrc-[0-9TZ]+\.tar\.xz)' | head -n1); then
-    log_error "Failed to get stage3 URL"
-    exit 1
-fi
-
-STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
-STAGE3_FILENAME=$(basename $STAGE3_URL)
-
-log_info "✓ Downloading: $STAGE3_FILENAME"
-
-if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
-    log_error "Failed to download stage3 tarball"
-    exit 1
-fi
-
-# Extract stage3 with error handling
-log_info "✓ Extracting stage3: $STAGE3_FILENAME"
-
-if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
-    log_error "Failed to extract stage3 tarball"
-    exit 1
-fi
-
-# Setup system with error handling
-mkdir -p /mnt/gentoo/var/db/repos/gentoo
-mkdir -p /mnt/gentoo/etc/portage/repos.conf
-
-if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/; then
-    log_error "Failed to copy repos.conf"
-    exit 1
-fi
-
-if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
-    log_error "Failed to copy resolv.conf"
-    exit 1
-fi
-
-# Remove downloaded tarball
-log_info "✓ Cleaning up downloaded tarball"
-rm "$STAGE3_FILENAME"
-
-log_info "✓ Mounting system filesystems"
-mount -t proc none /mnt/gentoo/proc
-mount -t sysfs none /mnt/gentoo/sys
-mount --rbind /sys /mnt/gentoo/sys
-mount --make-rslave /mnt/gentoo/sys
-mount --rbind /dev /mnt/gentoo/dev
-mount --make-rslave /mnt/gentoo/dev
-mount --rbind /run /mnt/gentoo/run
-mount --make-rslave /mnt/gentoo/run
-test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
-mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
-chmod 1777 /dev/shm
-
 optimize_makeopts() {
     # Detect CPU makeopts
     GENTOO_MAKEOPTS="-j$(nproc)"
+    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
 }
 
 optimize_cpu_flags() {
     # Detect CPU flags
     GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
+    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
 }
 
 detect_gpu() {
@@ -993,7 +930,69 @@ detect_gpu() {
     fi
 }
 
-log_info "✓ CPU flags: $GENTOO_CPUFLAGS"
+create_disk_partitions
+mount_filesystems
+
+cd /mnt/gentoo
+
+# Stage 3 download
+GENTOO_RELEASES_URL="https://mirror.dkm.cz/gentoo/releases"
+STAGE3_PATH_URL="$GENTOO_RELEASES_URL/amd64/autobuilds/latest-stage3-amd64-openrc.txt"
+
+if ! STAGE3_URL=$(curl -s "$STAGE3_PATH_URL" | grep -Eo '([0-9TZ]+/stage3-amd64-openrc-[0-9TZ]+\.tar\.xz)' | head -n1); then
+    log_error "Failed to get stage3 URL"
+    exit 1
+fi
+
+STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
+STAGE3_FILENAME=$(basename $STAGE3_URL)
+
+log_info "✓ Downloading: $STAGE3_FILENAME"
+
+if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
+    log_error "Failed to download stage3 tarball"
+    exit 1
+fi
+
+# Extract stage3
+log_info "✓ Extracting stage3: $STAGE3_FILENAME"
+
+if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
+    log_error "Failed to extract stage3 tarball"
+    exit 1
+fi
+
+# Setup system
+mkdir -p /mnt/gentoo/var/db/repos/gentoo
+mkdir -p /mnt/gentoo/etc/portage/repos.conf
+
+if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/; then
+    log_error "Failed to copy repos.conf"
+    exit 1
+fi
+
+if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
+    log_error "Failed to copy resolv.conf"
+    exit 1
+fi
+
+# Remove downloaded tarball
+log_info "✓ Cleaning up downloaded tarball"
+rm "$STAGE3_FILENAME"
+
+log_info "✓ Mounting [proc sys dev run] filesystems"
+mount -t proc none /mnt/gentoo/proc
+mount -t sysfs none /mnt/gentoo/sys
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --rbind /run /mnt/gentoo/run
+mount --make-rslave /mnt/gentoo/run
+test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
+mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
+chmod 1777 /dev/shm
+
 detect_gpu
 optimize_cpu_flags
 optimize_makeopts
