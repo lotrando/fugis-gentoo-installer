@@ -15,51 +15,16 @@
 #    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 # Fast Universal Gentoo Installation Script (c) 2023 - 2025 v 1.8
-# with interactive setup, zstd compression on F2FS and ZRAM swapfile
+# with interactive setup, zstd compression on F2FS
 
 # This script is designed to be run from a live environment CD or USB
 # It will install Gentoo Linux on the specified target partition
 
 # FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
 # make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
-
 export TERM=xterm-256color
 
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
-GENTOO_KERNEL="${GENTOO_KERNEL:-zen-sources}"
-KERNEL_NAME="${KERNEL_NAME:-Zen Sources}"
-SWAP_SIZE="${SWAP_SIZE:-2048}"
-SWAPFILE_SIZE="${SWAPFILE_SIZE:-1024}"
-SWAPFILE_PATH="${SWAPFILE_PATH:-/swapfile}"
-
-# Configure SWAP partition
-configure_swap_partition() {
-    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
-
-    # Doporučená velikost podle RAM
-    if [ "$TOTAL_RAM" -le 2048 ]; then
-        RECOMMENDED_SWAP=$((TOTAL_RAM * 2))
-    elif [ "$TOTAL_RAM" -le 8192 ]; then
-        RECOMMENDED_SWAP=$TOTAL_RAM
-    else
-        RECOMMENDED_SWAP=8192
-    fi
-
-    echo ""
-    echo -e "${CYAN}Recommended swap partition size: ${RECOMMENDED_SWAP} MB${RESET}"
-
-    while true; do
-        read -p "Swap partition size in MB [$(echo -e "${GREEN}${SWAP_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
-        SWAP_SIZE=${input:-${SWAP_SIZE:-$RECOMMENDED_SWAP}}
-        if [[ "$SWAP_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAP_SIZE" -ge 512 ]; then
-            break
-        else
-            log_error "Swap size must be a number >= 512 MB"
-        fi
-    done
-}
-
-# Important settings - do not change
 GENTOO_LOG_FILE="fugis.log"
 GENTOO_CONSOLEFONT=ter-v16b
 
@@ -107,7 +72,7 @@ log_info() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
 }
 
-# Logging functions err
+# Logging functions error
 log_error() {
     local message="[ERROR] $1"
     echo -e "${RED}${message}${RESET}" >&2
@@ -186,11 +151,38 @@ validate_username() {
     return 1
 }
 
+# Configure SWAP partition
+configure_swap_partition() {
+    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
+
+    # Doporučená velikost podle RAM
+    if [ "$TOTAL_RAM" -le 2048 ]; then
+        RECOMMENDED_SWAP=$((TOTAL_RAM * 2))
+    elif [ "$TOTAL_RAM" -le 8192 ]; then
+        RECOMMENDED_SWAP=$TOTAL_RAM
+    else
+        RECOMMENDED_SWAP=8192
+    fi
+
+    echo ""
+    echo -e "${CYAN}Recommended swap partition size: ${RECOMMENDED_SWAP} MB${RESET}"
+
+    while true; do
+        read -p "Swap partition size in MB [$(echo -e "${GREEN}${SWAP_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
+        SWAP_SIZE=${input:-${SWAP_SIZE:-$RECOMMENDED_SWAP}}
+        if [[ "$SWAP_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAP_SIZE" -ge 512 ]; then
+            break
+        else
+            log_error "Swap size must be a number >= 512 MB"
+        fi
+    done
+}
+
 # Installer header
 HEADER_TEXT=(
     "               - F U G I S -               "
     " Fast Universal Gentoo Installation Script "
-    "   Created by Realist (c) 2024-2025 v1.6   "
+    "   Created by Realist (c) 2024-2025 v1.8   "
 )
 
 HEADER_WIDTH=0
@@ -204,11 +196,6 @@ for line in "${HEADER_TEXT[@]}"; do
     printf "${LIGHT_BLUE}║ %-*s ║${RESET}\n" $((HEADER_WIDTH - 2)) "$line"
 done
 echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
-
-if [ ! -d "/sys/firmware/efi" ]; then
-    log_error "System is not booted in EFI mode!"
-    exit 1
-fi
 
 # Prerequisites check
 log_info "✓ Checks prerequisites for installation"
@@ -347,10 +334,11 @@ input_settings() {
     echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (default - optimized for desktop)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (latest development kernel)${RESET}"
     echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
+    echo -e "${YELLOW}4.${RESET} ${WHITE}Gentoo Sources BIN (stable with Gentoo patches binary)${RESET}"
 
     while true; do
         echo ""
-        read -p "$(echo -e "${BLUE}Choose kernel type (1-3):${RESET} ")" kernel_choice
+        read -p "$(echo -e "${BLUE}Choose kernel type (1-4):${RESET} ")" kernel_choice
         case "$kernel_choice" in
             1)
                 GENTOO_KERNEL="zen-sources"
@@ -367,6 +355,12 @@ input_settings() {
             3)
                 GENTOO_KERNEL="gentoo-sources"
                 KERNEL_NAME="Gentoo Sources"
+                echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
+                break
+                ;;
+            4)
+                GENTOO_KERNEL="gentoo-kernel-bin"
+                KERNEL_NAME="Gentoo Sources Binary"
                 echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
                 break
                 ;;
@@ -519,6 +513,8 @@ input_settings() {
 }
 
 
+
+
 # Main input setting loop
 while true; do
     input_settings
@@ -549,8 +545,6 @@ while true; do
     echo -e "${CYAN}Swap type:${RESET} ${SWAP_TYPE}"
     if [[ "$SWAP_TYPE" == "partition" ]]; then
         echo -e "${CYAN}Swap partition:${RESET} ${SWAP_SIZE} MB"
-    elif [[ "$SWAP_TYPE" == "file" ]]; then
-        echo -e "${CYAN}Swap file:${RESET} ${SWAPFILE_PATH} (${SWAPFILE_SIZE} MB)"
     fi
     echo ""
     echo -e "${RED}WARNING: Confirm will COMPLETELY WIPE the selected disk!${RESET}"
@@ -644,7 +638,7 @@ PARTED_END
     fi
 }
 
-# Mount filesystems
+# Funkce pro připojení souborových systémů
 mount_filesystems() {
     log_info "✓ Mounting created filesystems"
 
@@ -662,15 +656,13 @@ mount_filesystems() {
         log_warning "Failed to set compression attribute (non-critical)"
     fi
 
-    # Create both /boot and /boot/EFI directories
-    if ! mkdir -p /mnt/gentoo/boot/EFI; then
-        log_error "Failed to create boot/EFI directory"
+    if ! mkdir -p /mnt/gentoo/boot; then
+        log_error "Failed to create boot directory"
         exit 1
     fi
 
-    # Mount EFI partition to /boot/EFI instead of /boot
-    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot/EFI; then
-        log_error "Failed to mount EFI partition"
+    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
+        log_error "Failed to mount boot partition"
         exit 1
     fi
 
@@ -777,7 +769,9 @@ detect_gpu
 optimize_cpu_flags
 optimize_makeopts
 
-log_info "✓ Creating chroot configuration"
+# Create config file
+log_info "✓ Creating configuration for chroot"
+# Create improved chroot script
 log_info "✓ Creating chroot installation script"
 
 cat > /mnt/gentoo/tmp/chroot_config << EOF
@@ -801,8 +795,6 @@ TARGET_MASK="$TARGET_MASK"
 GENTOO_KEYMAP="$GENTOO_KEYMAP"
 GENTOO_LOCALE="$GENTOO_LOCALE"
 GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
-SWAPFILE_SIZE="$SWAPFILE_SIZE"
-SWAPFILE_PATH="$SWAPFILE_PATH"
 GRUB_GFX_MODE="$GRUB_GFX_MODE"
 GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
 GENTOO_USER="$GENTOO_USER"
@@ -843,8 +835,7 @@ cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
 
-# Change the EFI mount point from /boot to /boot/EFI
-echo "${TARGET_PART}1   /boot/EFI   vfat    noatime   0 0" >> /etc/fstab
+echo "${TARGET_PART}1   /boot   vfat    noatime      0 0" >> /etc/fstab
 
 if [[ "$SWAP_TYPE" == "partition" ]]; then
     echo "${TARGET_PART}3   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
@@ -909,17 +900,6 @@ echo "$GENTOO_ZONEINFO" > /etc/timezone
 env-update >/dev/null 2>&1
 source /etc/profile >/dev/null 2>&1
 
-# Swap configuration
-case "$SWAP_TYPE" in
-    "partition")
-        echo "Swap partition already configured in fstab"
-        ;;
-
-    "none")
-        echo "No swap configured"
-        ;;
-esac
-
 # Kernel and packages
 emerge ${GENTOO_KERNEL}
 emerge linux-firmware genkernel && genkernel all
@@ -943,8 +923,7 @@ echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 # GRUB Installation
-mkdir -p /boot/EFI
-grub-install --target=x86_64-efi --efi-directory=/boot/EFI --bootloader-id=GENTOO --recheck ${TARGET_DISK}
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services
