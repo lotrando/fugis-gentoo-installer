@@ -23,211 +23,9 @@
 # FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
 # make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
 
-GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
-
-# Optional parameters for create and save config to gist
-# Your Gist token (optional) insert your token for create gist with fugis.conf
-GITHUB_TOKEN=""
-# Optional parameters for load config from gist
-# Your Gist ID (optional) insert your gist id for download fugis.conf
-# Your Gist ID for updates (leave empty to create new)
-GITHUB_GIST_ID=""
-
-# Setup default terminal
 export TERM=xterm-256color
 
-# Load config fom file if exists. I not exists prompt for load config from Gist and gist ID
-load_config() {
-    if [[ -f "$GENTOO_CONFIG_FILE" ]]; then
-        source "$GENTOO_CONFIG_FILE"
-        log_info "✓ Configuration loaded from $GENTOO_CONFIG_FILE"
-    else
-        echo ""
-        read -n1 -p "$(echo -e "${YELLOW}Download config from Gist? (y/n): ${RESET}")" download_choice
-        echo ""
-        if [[ "$download_choice" == "y" || "$download_choice" == "Y" ]]; then
-            download_config_from_gist
-            if [[ -f "$GENTOO_CONFIG_FILE" ]]; then
-                source "$GENTOO_CONFIG_FILE"
-            fi
-        fi
-    fi
-}
-
-# Upload or update config to Gist
-upload_config_to_gist() {
-    # Check for gist token
-    if [[ -z "$GITHUB_TOKEN" ]]; then
-        log_warning "GitHub token not set. Skipping online config upload."
-        return 1
-    fi
-
-    # Check for config file
-    if [[ ! -f "$GENTOO_CONFIG_FILE" ]]; then
-        log_error "Configuration file not found: $GENTOO_CONFIG_FILE"
-        return 1
-    fi
-
-    # Prepare content
-    local config_content=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        line=$(echo "$line" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
-        if [[ -n "$config_content" ]]; then
-            config_content="${config_content}\\n${line}"
-        else
-            config_content="$line"
-        fi
-    done < "$GENTOO_CONFIG_FILE"
-
-    if [[ -n "$GITHUB_GIST_ID" ]]; then
-        # Update
-        update_existing_gist "$config_content"
-    else
-        # Create
-        create_new_gist "$config_content"
-    fi
-}
-
-# Create new Gist
-create_new_gist() {
-    local config_content="$1"
-
-    log_info "✓ Creating new Gist..."
-
-    local json_payload=$(cat << EOF
-{
-    "description": "FUGIS Configuration - $(date '+%Y-%m-%d %H:%M:%S')",
-    "public": false,
-    "files": {
-        "fugis.conf": {
-            "content": "$config_content"
-        }
-    }
-}
-EOF
-)
-
-    local response=$(curl -s -w "\n%{http_code}" -X POST \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -H "Content-Type: application/json" \
-        -d "$json_payload" \
-        https://api.github.com/gists)
-
-    local http_code=$(echo "$response" | tail -n1)
-    local json_response=$(echo "$response" | head -n -1)
-
-    if [[ "$http_code" != "201" ]]; then
-        log_error "GitHub API returned HTTP $http_code"
-        local error_msg=$(echo "$json_response" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-        if [[ -n "$error_msg" ]]; then
-            log_error "GitHub API error: $error_msg"
-        fi
-        return 1
-    fi
-
-    local gist_url=$(echo "$json_response" | sed -n 's/.*"html_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
-    local gist_id=$(echo "$json_response" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
-
-    if [[ -n "$gist_url" && -n "$gist_id" ]]; then
-        echo -e "${GREEN}✓ New Gist created successfully!${RESET}"
-        echo -e "${CYAN}Gist URL: $gist_url${RESET}"
-        echo -e "${CYAN}Gist ID: $gist_id${RESET}"
-        echo -e "${YELLOW}Save this Gist ID for future updates: $gist_id${RESET}"
-
-        log_info "✓ New Gist created: $gist_url"
-        return 0
-    else
-        log_error "Failed to parse new Gist response"
-        return 1
-    fi
-}
-
-# Update existing Gist
-update_existing_gist() {
-    local config_content="$1"
-
-    log_info "✓ Updating existing Gist ID: $GITHUB_GIST_ID"
-
-    local json_payload=$(cat << EOF
-{
-    "description": "FUGIS Configuration - Updated $(date '+%Y-%m-%d %H:%M:%S')",
-    "files": {
-        "fugis.conf": {
-            "content": "$config_content"
-        }
-    }
-}
-EOF
-)
-
-    local response=$(curl -s -w "\n%{http_code}" -X PATCH \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -H "Content-Type: application/json" \
-        -d "$json_payload" \
-        "https://api.github.com/gists/$GITHUB_GIST_ID")
-
-    local http_code=$(echo "$response" | tail -n1)
-    local json_response=$(echo "$response" | head -n -1)
-
-    if [[ "$http_code" != "200" ]]; then
-        log_error "Failed to update Gist. HTTP $http_code"
-        local error_msg=$(echo "$json_response" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-        if [[ -n "$error_msg" ]]; then
-            log_error "GitHub API error: $error_msg"
-        fi
-
-        # If update fails, offer to create new Gist
-        echo ""
-        read -n1 -p "$(echo -e "${YELLOW}Update failed. Create new Gist instead? (y/n): ${RESET}")" create_new
-        echo ""
-        if [[ "$create_new" == "y" || "$create_new" == "Y" ]]; then
-            create_new_gist "$config_content"
-        fi
-        return 1
-    fi
-
-    local gist_url=$(echo "$json_response" | sed -n 's/.*"html_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
-
-    if [[ -n "$gist_url" ]]; then
-       log_info "✓ Gist updated successfully!"
-        echo -e "${CYAN}Gist URL: $gist_url${RESET}"
-        echo -e "${CYAN}Gist ID: $GITHUB_GIST_ID${RESET}"
-
-        log_info "✓ Gist updated: $gist_url"
-        return 0
-    else
-        log_error "Failed to parse update response"
-        return 1
-    fi
-}
-
-# Load config from Gist
-download_config_from_gist() {
-    local gist_id="${1:-$GITHUB_GIST_ID}"
-
-    if [[ -z "$gist_id" ]]; then
-        read -p "$(echo -e "${BLUE}Enter Gist ID:${RESET} ")" gist_id
-    fi
-
-    if [[ -z "$gist_id" ]]; then
-        log_error "Gist ID is required"
-        return 1
-    fi
-
-    log_info "✓ Downloading configuration from Gist ID: $gist_id"
-
-    # Try raw URL first (simpler and more reliable)
-    local raw_url="https://gist.githubusercontent.com/raw/$gist_id/fugis.conf"
-
-    if curl -s -f "$raw_url" -o "$GENTOO_CONFIG_FILE"; then
-        log_info "✓ Configuration downloaded successfully"
-        return 0
-    else
-        log_error "Failed to download from raw URL: $raw_url"
-        return 1
-    fi
-}
-
+GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
 GENTOO_KERNEL="${GENTOO_KERNEL:-zen-sources}"
 KERNEL_NAME="${KERNEL_NAME:-Zen Sources}"
 SWAP_SIZE="${SWAP_SIZE:-2048}"
@@ -261,60 +59,7 @@ configure_swap_partition() {
     done
 }
 
-# Configure SWAP file
-configure_swap_file() {
-    TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
-    RECOMMENDED_SWAP=$((TOTAL_RAM / 2))
-
-    echo ""
-    while true; do
-        read -p "Swap file size in MB [$(echo -e "${GREEN}${SWAPFILE_SIZE:-$RECOMMENDED_SWAP}${RESET}")]: " input
-        SWAPFILE_SIZE=${input:-${SWAPFILE_SIZE:-$RECOMMENDED_SWAP}}
-        if [[ "$SWAPFILE_SIZE" =~ ^[0-9]+$ ]] && [ "$SWAPFILE_SIZE" -ge 512 ]; then
-            break
-        else
-            log_error "The swap file size must be a number >= 512 MB"
-        fi
-    done
-
-    read -p "Path to the swap file [$(echo -e "${GREEN}${SWAPFILE_PATH:-/swapfile}${RESET}")]: " input
-    SWAPFILE_PATH=${input:-${SWAPFILE_PATH:-/swapfile}}
-}
-
-# Save config function
-save_config() {
-    cat > "$GENTOO_CONFIG_FILE" <<EOF
-UEFI_DISK_SIZE="$UEFI_DISK_SIZE"
-GENTOO_USER="$GENTOO_USER"
-GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
-GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
-GENTOO_HOSTNAME="$GENTOO_HOSTNAME"
-GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
-GRUB_GFX_MODE="$GRUB_GFX_MODE"
-GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
-GENTOO_KEYMAP="$GENTOO_KEYMAP"
-GENTOO_KERNEL="$GENTOO_KERNEL"
-EOF
-
-    log_info "✓ Configuration saved to $GENTOO_CONFIG_FILE"
-
-    # If GitHub token is set, offer upload/update
-    if [[ -n "$GITHUB_TOKEN" ]]; then
-        echo ""
-        if [[ -n "$GITHUB_GIST_ID" ]]; then
-            read -n1 -p "$(echo -e "${YELLOW}Update existing Gist (ID: $GITHUB_GIST_ID)? (y/n): ${RESET}")" upload_choice
-        else
-            read -n1 -p "$(echo -e "${YELLOW}Upload config to new GitHub Gist? (y/n): ${RESET}")" upload_choice
-        fi
-        echo ""
-        if [[ "$upload_choice" == "y" || "$upload_choice" == "Y" ]]; then
-            upload_config_to_gist
-        fi
-    fi
-}
-
 # Important settings - do not change
-GENTOO_CONFIG_FILE="fugis.conf"
 GENTOO_LOG_FILE="fugis.log"
 GENTOO_CONSOLEFONT=ter-v16b
 
@@ -496,8 +241,6 @@ fi
 
 log_info "✓ All prerequisites met"
 
-load_config
-
 # Input settings function
 input_settings() {
     # UEFI partition size
@@ -518,27 +261,20 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}SWAP config:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}SWAP File${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}SWAP Partition${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}SWAP Off${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}SWAP Partition${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}SWAP Off${RESET}"
 
     while true; do
         echo ""
-        read -p "$(echo -e "${BLUE}Choose SWAP type (1-3):${RESET} ")" swap_choice
+        read -p "$(echo -e "${BLUE}Choose SWAP type (1-2):${RESET} ")" swap_choice
         case "$swap_choice" in
             1)
-                SWAP_TYPE="file"
-                echo -e "You have chosen: ${GREEN}SWAP File${RESET}"
-                configure_swap_file
-                break
-                ;;
-            2)
                 SWAP_TYPE="partition"
                 echo -e "You have chosen: ${GREEN}SWAP Partition${RESET}"
                 configure_swap_partition
                 break
                 ;;
-            3)
+            2)
                 SWAP_TYPE="none"
                 echo -e "You have chosen: ${GREEN}SWAP Off${RESET}"
                 break
@@ -783,8 +519,6 @@ input_settings() {
 }
 
 
-
-
 # Main input setting loop
 while true; do
     input_settings
@@ -824,7 +558,6 @@ while true; do
     read -n1 -p "$(echo -e "${YELLOW}Is everything set as you want? (y/n): ${RESET}")" confirm
     echo ""
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        save_config
         break
     else
         clear
@@ -1044,9 +777,7 @@ detect_gpu
 optimize_cpu_flags
 optimize_makeopts
 
-# Create config file
-log_info "✓ Creating configuration for chroot"
-# Create improved chroot script
+log_info "✓ Creating chroot configuration"
 log_info "✓ Creating chroot installation script"
 
 cat > /mnt/gentoo/tmp/chroot_config << EOF
@@ -1180,38 +911,6 @@ source /etc/profile >/dev/null 2>&1
 
 # Swap configuration
 case "$SWAP_TYPE" in
-    "zram")
-        echo "Configuring ZRAM swap..."
-        emerge sys-block/zram-init
-
-        cat > /etc/conf.d/zram-init << 'ZRAM_BLOCK_END'
-num_devices="1"
-type0="swap"
-size0=1024M
-comp_alg0="zstd"
-swap_priority0="100"
-max_comp_streams0="1"
-ZRAM_BLOCK_END
-
-        # Update values
-        sed -i "s/1024M/${ZRAM_SIZE}M/g" /etc/conf.d/zram-init
-        sed -i "s/zstd/$ZRAM_ALGORITHM/g" /etc/conf.d/zram-init
-        sed -i "s/num_devices=\"1\"/num_devices=\"$ZRAM_DEVICES\"/g" /etc/conf.d/zram-init
-        sed -i "s/max_comp_streams0=\"1\"/max_comp_streams0=\"$ZRAM_DEVICES\"/g" /etc/conf.d/zram-init
-
-        rc-update add zram-init default
-        echo "ZRAM swap configured: ${ZRAM_SIZE}MB with ${ZRAM_ALGORITHM} compression"
-        ;;
-
-    "file")
-        echo "Creating swap file..."
-        fallocate -l ${SWAPFILE_SIZE}M ${SWAPFILE_PATH}
-        chmod 600 ${SWAPFILE_PATH}
-        mkswap ${SWAPFILE_PATH}
-        echo "${SWAPFILE_PATH}   none    swap    sw      0 0" >> /etc/fstab
-        echo "Swap file created: ${SWAPFILE_PATH} (${SWAPFILE_SIZE}MB)"
-        ;;
-
     "partition")
         echo "Swap partition already configured in fstab"
         ;;
