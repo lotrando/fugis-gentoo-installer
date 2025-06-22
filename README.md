@@ -3,8 +3,6 @@
 
 ... is a debugged bash script that quickly install basic clear Gentoo Linux.
 
-<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
-
 ### How to use this script ?
 - download minimal installation CD from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
 - create bootable USB stick
@@ -33,17 +31,17 @@ chmod +x installer.sh && ./installer.sh
 ```
 
 ### Installation procedure
+
+
 - setup script variables and run installer
 - it will take some time to compile the kernel and packages
 - reboot and use new clear Gentoo linux
 
-### Screen after installation
+<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
-<img src="after_install.png" alt="Screenshot after instalation procedure" />
+#### This script install only contain 26 important packages and kernel with zen kernel sources
 
-### This script install only contain 26 important packages and kernel
-
-#### Kernel Build part [ with zen kernel]
+#### Kernel Build part
 ```
 (01) dev-libs/elfutils
 (02) virtual/libelf
@@ -78,9 +76,10 @@ chmod +x installer.sh && ./installer.sh
 
 ### Installation steps
 ```
-[INFO] ✓ Configuration saved to fugis.conf
 [INFO] ✓ Starting installation process...
+[INFO] ✓ Starting disk setup
 [INFO] ✓ Creating partitions on /dev/sda
+[INFO] ✓ Creating swap partition
 [INFO] ✓ Creating filesystems
 [INFO] ✓ Mounting filesystems
 [INFO] ✓ Downloading latest stage3 tarball
@@ -97,3 +96,6 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Installation completed successfully!
 [INFO] ✓ Cleaning up...
 ```
+### Screen after installation
+
+<img src="after_install.png" alt="Screenshot after instalation procedure" />
