@@ -1178,8 +1178,8 @@ emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # GRUB configuration
-cat >> /etc/default/grub << 'GRUB_BLOCK_END'
-GRUB_GFXMODE=$GRUB_GFX_MODE
+cat >> /etc/default/grub << GRUB_BLOCK_END
+GRUB_GFXMODE=${GRUB_GFX_MODE}
 GRUB_GFXPAYLOAD_LINUX=keep
 GRUB_DISABLE_OS_PROBER=true
 GRUB_DEFAULT=0
