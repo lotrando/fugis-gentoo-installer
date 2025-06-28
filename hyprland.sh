@@ -687,6 +687,12 @@ detect_gpu() {
     elif lspci | grep -i intel &>/dev/null; then
         GENTOO_GPU="intel i965"
         log_info "✓ Detected Intel GPU"
+    elif lspci | grep -i vmware &>/dev/null; then
+        GENTOO_GPU="vmware"
+        log_info "✓ Detected VMware virtual GPU"
+    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
+        GENTOO_GPU="virtualbox"
+        log_info "✓ Detected VirtualBox virtual GPU"
     else
         GENTOO_GPU="fbdev vesa"
         log_info "✓ No specific GPU detected, using generic drivers"
@@ -897,7 +903,7 @@ emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # Hyprland desktop ------------------------------------
-emerge eselect-repository pambase elogind sys-apps/dbus seatd eza btop app-misc/mc
+emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza btop app-misc/mc
 eselect repository enable guru && emaint sync -r guru
 emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
 # -----------------------------------------------------
