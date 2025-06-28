@@ -897,9 +897,9 @@ emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # Hyprland desktop ------------------------------------
-emerge eselect-repository pambase elogind dbus seatd eza btop
+emerge eselect-repository pambase elogind dbus seatd eza btop app-misc/mc
 eselect repository enable guru && emaint sync -r guru
-emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout btop kitty eza app-misc/mc
+emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
 # -----------------------------------------------------
 
 # GRUB configuration
