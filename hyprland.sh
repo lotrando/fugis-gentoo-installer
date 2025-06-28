@@ -316,7 +316,7 @@ input_settings() {
     echo ""
 
     while true; do
-        read -p "Enter hostname [$(echo -e "${GREEN}${GENTOO_HOSTNAME:-gentoo}${RESET}")]: " input
+        read -p "Enter hostname [$(echo -e "${GREEN}${GENTOO_HOSTNAME:-hyprland}${RESET}")]: " input
         GENTOO_HOSTNAME=${input:-${GENTOO_HOSTNAME:-gentoo}}
         if validate_hostname "$GENTOO_HOSTNAME"; then
             break
@@ -394,12 +394,15 @@ input_settings() {
     GENTOO_ZONEINFO=${input:-${GENTOO_ZONEINFO:-Europe/Prague}}
 
     # Disk selection
-    DISKS=($(lsblk -d -n -o NAME | awk '{print "/dev/" $1}'))
+    DISKS=($(lsblk -d -n -o NAME,TYPE | grep "disk" | grep -v "loop" | awk '{print "/dev/" $1}'))
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected disks:${RESET}"
     echo ""
+
     for i in "${!DISKS[@]}"; do
-        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET}"
+        # Zobrazit dodatečné informace o disku
+        disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
+        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
     done
 
     while true; do
@@ -926,7 +929,7 @@ echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 # GRUB Installation
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=HYPRLAND --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services

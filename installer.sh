@@ -394,12 +394,15 @@ input_settings() {
     GENTOO_ZONEINFO=${input:-${GENTOO_ZONEINFO:-Europe/Prague}}
 
     # Disk selection
-    DISKS=($(lsblk -d -n -o NAME | awk '{print "/dev/" $1}'))
+    DISKS=($(lsblk -d -n -o NAME,TYPE | grep "disk" | grep -v "loop" | awk '{print "/dev/" $1}'))
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected disks:${RESET}"
     echo ""
+
     for i in "${!DISKS[@]}"; do
-        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET}"
+        # Zobrazit dodatečné informace o disku
+        disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
+        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
     done
 
     while true; do
