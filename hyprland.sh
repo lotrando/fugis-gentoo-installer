@@ -897,7 +897,7 @@ emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
 # Hyprland desktop ------------------------------------
-emerge eselect-repository pambase elogind dbus seatd eza btop app-misc/mc
+emerge eselect-repository pambase elogind sys-apps/dbus seatd eza btop app-misc/mc
 eselect repository enable guru && emaint sync -r guru
 emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
 # -----------------------------------------------------
@@ -924,7 +924,7 @@ grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add elogind default && rc-update add dbus default
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add elogind boot && rc-update add dbus default
 
 # Cleanup
 rm -f /root/gentoo-chroot.sh
