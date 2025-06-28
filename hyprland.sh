@@ -807,11 +807,11 @@ rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
 
-wget -q "${GENTOO_INSTALLER_URL}/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/package.mask"
+wget -q "${GENTOO_INSTALLER_URL}/hyprland/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.mask"
 
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
@@ -896,6 +896,12 @@ emerge ${GENTOO_KERNEL}
 emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
+# Hyprland desktop ------------------------------------
+emerge eselect-repository pambase elogind dbus seatd eza btop
+eselect repository enable guru && emaint sync -r guru
+emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout btop kitty eza app-misc/mc
+# -----------------------------------------------------
+
 # GRUB configuration
 cat >> /etc/default/grub << GRUB_BLOCK_END
 GRUB_GFXMODE=${GRUB_GFX_MODE}
@@ -907,7 +913,7 @@ GRUB_BLOCK_END
 
 # Users and passwords
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
-useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
+useradd -m -G audio,video,usb,input,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
 # SUDO configuration
@@ -918,7 +924,7 @@ grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add elogind default && rc-update add dbus default
 
 # Cleanup
 rm -f /root/gentoo-chroot.sh
@@ -938,7 +944,7 @@ echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed
 echo -e "${GREEN}║     You can now reboot and enjoy your new system! Lotrando     ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-echo -e "${GREEN}║                    sudo emerge -avUDu @world                   ║${RESET}"
+echo -e "${GREEN}║                  sudo emerge -avUDNu @world                    ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
 
 log_info "✓ Installation completed successfully!"

@@ -1,0 +1,45 @@
+# package.use file -> /etc/portage/package.use
+
+# APP-ADMIN
+app-admin/sudo -sendmail
+
+# APP-MISC
+app-misc/mc -slang unicode gpm sftp
+
+# DEV-CPP
+dev-cpp/cairomm X
+
+# DEV-LIBS
+dev-libs/libdbusmenu gtk3
+
+# DEV-QT
+dev-qt/qtbase opengl accessibility
+dev-qt/qtwayland accessibility
+dev-qt/qtdeclarative opengl accessibility
+dev-qt/qtmultimedia opengl
+dev-qt/qtdeclarative opengl accessibility
+dev-qt/qtmultimedia opengl
+dev-qt/qttools opengl
+
+# GUI-APPS
+gui-apps/rofi-wayland drun windowmode
+gui-apps/waybar udev network tray upower wifi evdev
+
+# MEDIA-FONTS
+media-fonts/terminus-font -ru-g
+
+# SYS-BOOT
+sys-boot/grub mount
+
+# SYS-KERNEL
+sys-kernel/linux-firmware initramfs
+sys-kernel/zen-sources symlink
+sys-kernel/git-sources symlink
+sys-kernel/gentoo-sources symlink
+
+# X11-LIBS
+x11-libs/cairo X
+x11-libs/pango X
+
+kde-frameworks/sonnet qml
+app-text/xmlto text
