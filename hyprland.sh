@@ -316,7 +316,7 @@ input_settings() {
     echo ""
 
     while true; do
-        read -p "Enter hostname [$(echo -e "${GREEN}${GENTOO_HOSTNAME:-hyprland}${RESET}")]: " input
+        read -p "Enter hostname [$(echo -e "${GREEN}${GENTOO_HOSTNAME:-gentoo}${RESET}")]: " input
         GENTOO_HOSTNAME=${input:-${GENTOO_HOSTNAME:-gentoo}}
         if validate_hostname "$GENTOO_HOSTNAME"; then
             break
@@ -632,7 +632,7 @@ PARTED_END
     fi
 }
 
-# Funkce pro připojení souborových systémů
+# Mount filesystems
 mount_filesystems() {
     log_info "✓ Mounting created filesystems"
 
@@ -660,25 +660,28 @@ mount_filesystems() {
         exit 1
     fi
 
-    # Aktivace swap oddílu pokud existuje
+    # Activvate swap if exists
     if [[ "$SWAP_TYPE" == "partition" ]]; then
         log_info "✓ Activating swap partition"
         swapon ${TARGET_PART}2
     fi
 }
 
+# Detect CPU Cores
 optimize_makeopts() {
     # Detect CPU makeopts
     GENTOO_MAKEOPTS="-j$(nproc)"
     log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
 }
 
+# Detect CPU Flags
 optimize_cpu_flags() {
     # Detect CPU flags
     GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
     log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
 }
 
+# Detect GPU
 detect_gpu() {
     # GPU specifické flagy
     if lspci | grep -i nvidia &>/dev/null; then
@@ -738,11 +741,13 @@ fi
 mkdir -p /mnt/gentoo/var/db/repos/gentoo
 mkdir -p /mnt/gentoo/etc/portage/repos.conf
 
+# Copy repos.conf
 if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/; then
     log_error "Failed to copy repos.conf"
     exit 1
 fi
 
+# Copy resol.conf DNS
 if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
     log_error "Failed to copy resolv.conf"
     exit 1
@@ -771,6 +776,7 @@ optimize_makeopts
 
 # Create config file
 log_info "✓ Creating configuration for chroot"
+
 # Create improved chroot script
 log_info "✓ Creating chroot installation script"
 
@@ -799,6 +805,7 @@ GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
 GENTOO_USER="$GENTOO_USER"
 GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
 TARGET_DISK="$TARGET_DISK"
+BLOWFISH_SECRET="WntN0150l71sLq/{w4V0:ZXFv7WcB-Qz"
 EOF
 
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
@@ -951,6 +958,21 @@ git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contr
 git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 chsh -s /bin/zsh $GENTOO_USER
+
+# Web server [ install WEBDEVELOP server]
+# emerge phpmyadmin dev-db/mysql dev-lang/php vscode composer nodejs
+# eselect php set cli php8.3 && eselect php set apache2 php8.3
+# rm -R /usr/lib/tmpfiles.d/mysql.conf
+# echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
+# sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
+# echo "ServerName localhost" >> /etc/apache2/httpd.conf
+# rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
+# cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+# mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
+# chown -R apache:apache /var/www/ && usermod -aG apache realist
+# chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+# sed -i "s/\$cfg\['blowfish_secret'\] = '';/\$cfg['blowfish_secret'] = '${BLOWFISH_SECRET}';/" /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+# emerge --config mysql
 
 # Cleanup
 rm -f /root/gentoo-chroot.sh
