@@ -1,18 +1,20 @@
 #!/bin/bash
 
-#    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-#    ░                                              ░
-#    ░    ███████╗██╗   ██╗ ██████╗ ██╗███████╗     ░
-#    ░    ██╔════╝██║   ██║██╔════╝ ██║██╔════╝     ░
-#    ░    █████╗  ██║   ██║██║  ███╗██║███████╗     ░
-#    ░    ██╔══╝  ██║   ██║██║   ██║██║╚════██║     ░
-#    ░    ██║     ╚██████╔╝╚██████╔╝██║███████║     ░
-#    ░    ╚═╝      ╚═════╝  ╚═════╝ ╚═╝╚══════╝     ░
-#    ░                                              ░
-#    ░  Fast Universal Gentoo Installation Script   ░
-#    ░   Created by Lotrando (c) 2024-2025 v 1.8    ░
-#    ░                                              ░
-#    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+#    ╔═════════════════════════════════════════════════╗
+#    ║                                                 ║
+#    ║    ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗    ║
+#    ║    ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝    ║
+#    ║    █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗    ║
+#    ║    ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║    ║
+#    ║    ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║    ║
+#    ║    ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝    ║
+#    ║                                                 ║
+#    ║    Fast Universal Gentoo Installation Script    ║
+#    ║     Created by Lotrando (c) 2024-2025 v 1.8     ║
+#    ║                                                 ║
+#    ║                CLASSIC VERSION                  ║
+#    ║                                                 ║
+#    ╚═════════════════════════════════════════════════╝
 
 # Fast Universal Gentoo Installation Script (c) 2024 - 2025 v 1.8
 # This script is designed to be run from a live environment from USB
@@ -955,9 +957,16 @@ chroot /mnt/gentoo /root/gentoo-chroot.sh
 #  Instalation Complete!
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
+echo -e "${GREEN}║            ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗           ║${RESET}"
+echo -e "${GREEN}║            ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝           ║${RESET}"
+echo -e "${GREEN}║            █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗           ║${RESET}"
+echo -e "${GREEN}║            ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║           ║${RESET}"
+echo -e "${GREEN}║            ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║           ║${RESET}"
+echo -e "${GREEN}║            ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝           ║${RESET}"
+echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                    INSTALLATION COMPLETE !                     ║${RESET}"
 echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed    ║${RESET}"
-echo -e "${GREEN}║     You can now reboot and enjoy your new system! Lotrando     ║${RESET}"
+echo -e "${GREEN}║         You can now reboot and enjoy your new system!          ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                    sudo emerge -avUDu @world                   ║${RESET}"

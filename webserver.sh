@@ -1,24 +1,26 @@
 #!/bin/bash
 
-#    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-#    ░                                              ░
-#    ░    ███████╗██╗   ██╗ ██████╗ ██╗███████╗     ░
-#    ░    ██╔════╝██║   ██║██╔════╝ ██║██╔════╝     ░
-#    ░    █████╗  ██║   ██║██║  ███╗██║███████╗     ░
-#    ░    ██╔══╝  ██║   ██║██║   ██║██║╚════██║     ░
-#    ░    ██║     ╚██████╔╝╚██████╔╝██║███████║     ░
-#    ░    ╚═╝      ╚═════╝  ╚═════╝ ╚═╝╚══════╝     ░
-#    ░                                              ░
-#    ░  Fast Universal Gentoo Installation Script   ░
-#    ░   Created by Lotrando (c) 2024-2025 v 1.8    ░
-#    ░                                              ░
-#    ░              WEBSERVER VERSION               ░
-#    ░                                              ░
-#    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+#    ╔═════════════════════════════════════════════════╗
+#    ║                                                 ║
+#    ║    ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗    ║
+#    ║    ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝    ║
+#    ║    █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗    ║
+#    ║    ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║    ║
+#    ║    ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║    ║
+#    ║    ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝    ║
+#    ║                                                 ║
+#    ║    Fast Universal Gentoo Installation Script    ║
+#    ║     Created by Lotrando (c) 2024-2025 v 1.8     ║
+#    ║                                                 ║
+#    ║               WEBSERVER VERSION                 ║
+#    ║                                                 ║
+#    ╚═════════════════════════════════════════════════╝
 
 # Fast Universal Gentoo Installation Script (c) 2024 - 2025 v 1.8
 # This script is designed to be run from a live environment from USB
 # It will install Gentoo Linux on the specified target partition
+
+# This is WEBSERVER version - install complete XAMPP server [ APACHE, PHP, MYSQL, PHPMYADMIN ]
 
 # FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
 # make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
@@ -26,6 +28,7 @@
 export TERM=xterm-256color
 clear
 
+# Installer base URL
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
 
 # Colors
@@ -57,7 +60,7 @@ trap cleanup EXIT
 # Cleanup function
 cleanup() {
     log_info "✓ Cleaning up..."
-    umount -R /mnt/gentoo 2>/dev/null || true
+    umount -Rf /mnt/gentoo 2>/dev/null || true
 }
 
 # Function to strip ANSI color codes
@@ -182,7 +185,7 @@ HEADER_TEXT=(
     "               - F U G I S -               "
     " Fast Universal Gentoo Installation Script "
     "  Created by Lotrando (c) 2024-2025 v 1.8  "
-    "            WEBSERVER VERSION              "
+    "             WEBSERVER VERSION             "
 )
 
 HEADER_WIDTH=0
@@ -335,9 +338,9 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Kernel selection:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (optimized for desktop)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (optimized for hyprland)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (development kernel)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (optimized for webserver)${RESET}"
 
     while true; do
         echo ""
@@ -378,14 +381,14 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Setup locales:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}English (en_US.UTF-8)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Czech (cs_CZ.UTF-8)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Czech (cs_CZ.UTF-8)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}English (en_US.UTF-8)${RESET}"
 
     while true; do
         read -p "$(echo -e "${BLUE}Select locale (1-2):${RESET} ")" locale_choice
         case "$locale_choice" in
-            1) GENTOO_LOCALE="en_US.UTF-8"; break ;;
-            2) GENTOO_LOCALE="cs_CZ.UTF-8"; break ;;
+            1) GENTOO_LOCALE="cs_CZ.UTF-8"; break ;;
+            2) GENTOO_LOCALE="en_US.UTF-8"; break ;;
             *) log_error "Invalid choice. Please try again." ;;
         esac
     done
@@ -403,7 +406,6 @@ input_settings() {
     echo ""
 
     for i in "${!DISKS[@]}"; do
-        # Zobrazit dodatečné informace o disku
         disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
         echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
     done
@@ -946,7 +948,7 @@ unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
-# Web server [ install WEB server]
+# Web server installation
 emerge phpmyadmin dev-db/mysql dev-lang/php
 eselect php set cli php8.4 && eselect php set apache2 php8.4
 rm -R /usr/lib/tmpfiles.d/mysql.conf
@@ -975,10 +977,20 @@ chroot /mnt/gentoo /root/gentoo-chroot.sh
 #  Instalation Complete!
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
+echo -e "${GREEN}║            ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗           ║${RESET}"
+echo -e "${GREEN}║            ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝           ║${RESET}"
+echo -e "${GREEN}║            █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗           ║${RESET}"
+echo -e "${GREEN}║            ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║           ║${RESET}"
+echo -e "${GREEN}║            ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║           ║${RESET}"
+echo -e "${GREEN}║            ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝           ║${RESET}"
+echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                    INSTALLATION COMPLETE !                     ║${RESET}"
 echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed    ║${RESET}"
-echo -e "${GREEN}║     You can now reboot and enjoy your new system! Lotrando     ║${RESET}"
+echo -e "${GREEN}║         You can now reboot and enjoy your new system!          ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
+echo -e "${GREEN}║                                                                ║${RESET}"
+echo -e "${GREEN}║ http://localhost is your new Apache webserver with latest php  ║${RESET}"
+echo -e "${GREEN}║ http://localhost/phpmyadmin/ is your mySQL manager phpMyAdmin  ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                    sudo emerge -avUDu @world                   ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
