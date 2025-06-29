@@ -210,7 +210,7 @@ if [ ! -d "/mnt/gentoo" ]; then
 fi
 
 # Check required commands
-for cmd in wget parted mkfs.fat mkfs.f2fs curl iwlist wpa_supplicant dhcpcd; do
+for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
     if ! command -v "$cmd" &> /dev/null; then
         log_error "Required command '$cmd' is not available"
         exit 1
@@ -222,141 +222,6 @@ if ! ping -c 1 8.8.8.8 &> /dev/null; then
     log_error "No internet connectivity detected"
     exit 1
 fi
-
-# Function to detect network interface type
-detect_interface_type() {
-    local interface=$1
-    if [[ -d "/sys/class/net/$interface/wireless" ]] || [[ -L "/sys/class/net/$interface/phy80211" ]]; then
-        echo "wifi"
-    elif [[ -d "/sys/class/net/$interface/device" ]] && [[ $(cat /sys/class/net/$interface/type 2>/dev/null) == "1" ]]; then
-        echo "ethernet"
-    else
-        echo "unknown"
-    fi
-}
-
-# Function to get interface description
-get_interface_description() {
-    local interface=$1
-    local type=$(detect_interface_type "$interface")
-    local description=""
-
-    case $type in
-        "wifi")
-            # Try to get WiFi card info
-            if command -v lspci &> /dev/null; then
-                description=$(lspci | grep -i "wireless\|wifi\|802.11" | head -1 | cut -d: -f3- | xargs)
-            fi
-            [[ -z "$description" ]] && description="WiFi Interface"
-            ;;
-        "ethernet")
-            # Try to get Ethernet card info
-            if command -v lspci &> /dev/null; then
-                description=$(lspci | grep -i "ethernet" | head -1 | cut -d: -f3- | xargs)
-            fi
-            [[ -z "$description" ]] && description="Ethernet Interface"
-            ;;
-        *)
-            description="Unknown Interface"
-            ;;
-    esac
-
-    echo "$description"
-}
-
-# Function to configure WiFi
-configure_wifi() {
-    local interface=$1
-
-    echo ""
-    echo -e "${CYAN}WiFi Configuration for ${interface}${RESET}"
-    echo ""
-
-    # Bring interface up
-    ip link set "$interface" up
-    sleep 2
-
-    # Scan for networks
-    echo -e "${YELLOW}Scanning for WiFi networks...${RESET}"
-    if ! iwlist "$interface" scan &>/dev/null; then
-        log_error "Failed to scan for WiFi networks"
-        return 1
-    fi
-
-    # Get available networks
-    local networks=($(iwlist "$interface" scan | grep "ESSID:" | sed 's/.*ESSID:"\(.*\)".*/\1/' | grep -v "^$" | sort -u))
-
-    if [[ ${#networks[@]} -eq 0 ]]; then
-        log_error "No WiFi networks found"
-        return 1
-    fi
-
-    echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Available WiFi Networks:${RESET}"
-    echo ""
-
-    for i in "${!networks[@]}"; do
-        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${networks[$i]}${RESET}"
-    done
-
-    # Manual SSID entry option
-    echo -e "${YELLOW}$((${#networks[@]}+1)).${RESET} ${WHITE}Enter SSID manually${RESET}"
-
-    while true; do
-        echo ""
-        read -p "$(echo -e "${BLUE}Select WiFi network (1-$((${#networks[@]}+1))):${RESET} ")" wifi_choice
-        if [[ "$wifi_choice" =~ ^[1-9][0-9]*$ ]] && [ "$wifi_choice" -le "$((${#networks[@]}+1))" ]; then
-            if [ "$wifi_choice" -eq "$((${#networks[@]}+1))" ]; then
-                read -p "$(echo -e "${BLUE}Enter SSID manually:${RESET} ")" WIFI_SSID
-            else
-                WIFI_SSID="${networks[$((wifi_choice-1))]}"
-            fi
-            echo -e "Selected network: ${GREEN}${WIFI_SSID}${RESET}"
-            break
-        else
-            log_error "Invalid choice. Please try again."
-        fi
-    done
-
-    # Get WiFi password
-    while true; do
-        read -s -p "$(echo -e "${BLUE}Enter WiFi password:${RESET} ")" WIFI_PASSWORD
-        echo ""
-        if [ ${#WIFI_PASSWORD} -ge 8 ]; then
-            break
-        else
-            log_error "WiFi password must be at least 8 characters long"
-        fi
-    done
-
-    # Create wpa_supplicant configuration
-    cat > /tmp/wpa_supplicant.conf << EOF
-network={
-    ssid="${WIFI_SSID}"
-    psk="${WIFI_PASSWORD}"
-}
-EOF
-
-    # Test WiFi connection
-    echo ""
-    echo -e "${YELLOW}Testing WiFi connection...${RESET}"
-
-    if wpa_supplicant -B -i "$interface" -c /tmp/wpa_supplicant.conf &>/dev/null; then
-        sleep 5
-        if dhcpcd "$interface" &>/dev/null; then
-            sleep 3
-            if ping -c 1 8.8.8.8 &>/dev/null; then
-                echo -e "${GREEN}WiFi connection successful!${RESET}"
-                return 0
-            fi
-        fi
-    fi
-
-    log_error "Failed to connect to WiFi"
-    killall wpa_supplicant 2>/dev/null || true
-    rm -f /tmp/wpa_supplicant.conf
-    return 1
-}
 
 log_info "✓ All prerequisites met"
 
@@ -535,6 +400,7 @@ input_settings() {
     echo ""
 
     for i in "${!DISKS[@]}"; do
+        # Zobrazit dodatečné informace o disku
         disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
         echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
     done
@@ -559,38 +425,13 @@ input_settings() {
         fi
     done
 
-
-    # Network interface selection with type detection
+    # Network interface selection
     NET_INTERFACES=($(ls /sys/class/net | grep -v lo))
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected network interfaces:${RESET}"
     echo ""
-
-    # Display interfaces with their types
     for i in "${!NET_INTERFACES[@]}"; do
-        local interface="${NET_INTERFACES[$i]}"
-        local type=$(detect_interface_type "$interface")
-        local description=$(get_interface_description "$interface")
-        local status=""
-
-        # Check if interface is up
-        if [[ $(cat /sys/class/net/$interface/operstate 2>/dev/null) == "up" ]]; then
-            status="${GREEN}[UP]${RESET}"
-        else
-            status="${RED}[DOWN]${RESET}"
-        fi
-
-        case $type in
-            "wifi")
-                echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${interface}${RESET} ${CYAN}(WiFi)${RESET} $status - $description"
-                ;;
-            "ethernet")
-                echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${interface}${RESET} ${BLUE}(Ethernet)${RESET} $status - $description"
-                ;;
-            *)
-                echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${interface}${RESET} ${MAGENTA}(Unknown)${RESET} $status - $description"
-                ;;
-        esac
+        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${NET_INTERFACES[$i]}${RESET}"
     done
 
     while true; do
@@ -598,44 +439,18 @@ input_settings() {
         read -p "$(echo -e "${BLUE}Select network interface by number (1-${#NET_INTERFACES[@]}):${RESET} ")" net_choice
         if [[ "$net_choice" =~ ^[1-9][0-9]*$ ]] && [ "$net_choice" -le "${#NET_INTERFACES[@]}" ]; then
             TARGET_LAN="${NET_INTERFACES[$((net_choice-1))]}"
-            INTERFACE_TYPE=$(detect_interface_type "$TARGET_LAN")
-            echo -e "You selected: ${GREEN}${TARGET_LAN}${RESET} (${INTERFACE_TYPE})"
+            echo -e "You selected: ${GREEN}${TARGET_LAN}${RESET}"
             break
         else
             log_error "Invalid choice. Please try again."
         fi
     done
 
-    # WiFi configuration if WiFi interface is selected
-    if [[ "$INTERFACE_TYPE" == "wifi" ]]; then
-        echo ""
-        echo -e "${CYAN}${UNDERLINE}WiFi Interface Selected${RESET}"
-        echo ""
-        echo -e "${YELLOW}WiFi interfaces require additional configuration.${RESET}"
-        echo ""
-
-        if ! configure_wifi "$TARGET_LAN"; then
-            log_error "WiFi configuration failed. Please select a different interface or check your WiFi settings."
-            continue
-        fi
-
-        # Store WiFi credentials for later use
-        WIFI_CONFIGURED=true
-    else
-        WIFI_CONFIGURED=false
-    fi
-
     # Network configuration
     echo ""
     echo -e "${CYAN}${UNDERLINE}Network configuration:${RESET}"
-
-    if [[ "$INTERFACE_TYPE" == "wifi" ]]; then
-        echo -e "${YELLOW}1.${RESET} ${WHITE}DHCP (automatic) - Recommended for WiFi${RESET}"
-        echo -e "${YELLOW}2.${RESET} ${WHITE}Static IP${RESET}"
-    else
-        echo -e "${YELLOW}1.${RESET} ${WHITE}DHCP (automatic)${RESET}"
-        echo -e "${YELLOW}2.${RESET} ${WHITE}Static IP${RESET}"
-    fi
+    echo -e "${YELLOW}1.${RESET} ${WHITE}DHCP (automatic)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Static IP${RESET}"
 
     while true; do
         echo ""
@@ -971,10 +786,6 @@ GENTOO_HOSTNAME="$GENTOO_HOSTNAME"
 GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
 NET_MODE="$NET_MODE"
 TARGET_LAN="$TARGET_LAN"
-INTERFACE_TYPE="$INTERFACE_TYPE"
-WIFI_CONFIGURED="$WIFI_CONFIGURED"
-WIFI_SSID="$WIFI_SSID"
-WIFI_PASSWORD="$WIFI_PASSWORD"
 TARGET_IP="$TARGET_IP"
 TARGET_CIDR="$TARGET_CIDR"
 TARGET_GATE="$TARGET_GATE"
