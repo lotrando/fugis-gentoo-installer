@@ -930,7 +930,7 @@ echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 # GRUB Installation
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=WEBSERVER --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services

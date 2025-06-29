@@ -2,7 +2,7 @@
 ---
 ### Fast Universal Gentoo Installation Script
 
- is a debugged bash script that quickly install basic clear Gentoo Linux on your harddrive.
+ is a tweaked bash script that quickly installs a basic and clean Gentoo Linux onto your hard drive. <strong>installer.sh</strong> is pure Gentoo Linux and the other scripts <strong>webserver.sh</strong> and <strong>hyprland.sh</strong> do exactly what they say.
 
 ### Positives of the Script
 
@@ -56,11 +56,21 @@ chmod +x installer.sh
 #### 2. Run downloaded script direct from shell
 - boot from USB stick
 - in command line run two command lines
+
+use Classic
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
 ```
+or Webserver
+ ```
+wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/webserver.sh
 ```
-chmod +x installer.sh && ./installer.sh
+or Hyprland Desktop
+ ```
+wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/hyprland.sh
+```
+```
+chmod +x [nameOfScript].sh && ./[nameOfScript].sh
 ```
 
 ### Installation procedure
