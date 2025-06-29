@@ -625,7 +625,7 @@ input_settings() {
         WIFI_CONFIGURED=false
     fi
 
-    # Network configuration (modify existing section)
+    # Network configuration
     echo ""
     echo -e "${CYAN}${UNDERLINE}Network configuration:${RESET}"
 
@@ -636,12 +636,6 @@ input_settings() {
         echo -e "${YELLOW}1.${RESET} ${WHITE}DHCP (automatic)${RESET}"
         echo -e "${YELLOW}2.${RESET} ${WHITE}Static IP${RESET}"
     fi
-
-    # Network configuration
-    echo ""
-    echo -e "${CYAN}${UNDERLINE}Network configuration:${RESET}"
-    echo -e "${YELLOW}1.${RESET} ${WHITE}DHCP (automatic)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Static IP${RESET}"
 
     while true; do
         echo ""
