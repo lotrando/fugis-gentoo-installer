@@ -823,11 +823,11 @@ rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
 
-wget -q "${GENTOO_INSTALLER_URL}/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/package.mask"
+wget -q "${GENTOO_INSTALLER_URL}/webserver/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/webserver/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/webserver/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/webserver/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/webserver/package.mask"
 
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
@@ -956,6 +956,7 @@ mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
 chown -R apache:apache /var/www/ && usermod -aG apache realist
 chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
 sed -i "s/\$cfg\['blowfish_secret'\] = '';/\$cfg['blowfish_secret'] = '${BLOWFISH_SECRET}';/" /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+rc-update add apche2 default && rc-update add mysql default
 emerge --config mysql
 
 # Remove chroot-script

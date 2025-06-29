@@ -2,7 +2,7 @@
 ---
 ### Fast Universal Gentoo Installation Script
 
- is a tweaked bash script that quickly installs a basic and clean Gentoo Linux onto your hard drive. <strong>installer.sh</strong> is pure Gentoo Linux and the other scripts <strong>webserver.sh</strong> and <strong>hyprland.sh</strong> do exactly what they say.
+ is a tweaked bash script that quickly install a basic and clean Gentoo Linux onto your hard drive. <strong>installer.sh</strong> is pure Gentoo Linux. And the other scripts is modified and install additional packages. Script <strong>webserver.sh</strong> instal classic web server latest php apache mysql server and phpmyadmin. Script <strong>hyprland.sh</strong> install packages where after do tty login automaticaly run Hyprland desktop.
 
 ### Positives of the Script
 

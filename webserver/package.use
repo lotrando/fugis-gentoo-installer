@@ -1,0 +1,19 @@
+# package.use file -> /etc/portage/package.use
+
+# APP-ADMIN
+app-admin/sudo -sendmail
+
+# DEV-LANG
+dev-lang/php mysqli fpm
+
+# MEDIA-FONTS
+media-fonts/terminus-font -ru-g
+
+# SYS-BOOT
+sys-boot/grub mount
+
+# SYS-KERNEL
+sys-kernel/linux-firmware initramfs
+sys-kernel/zen-sources symlink
+sys-kernel/git-sources symlink
+sys-kernel/gentoo-sources symlink
