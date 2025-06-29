@@ -935,6 +935,14 @@ grub-mkconfig -o /boot/grub/grub.cfg
 # Services
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add elogind boot && rc-update add dbus default
 
+# User config dotfiles
+cd /home/$GENTOO_USER/
+mkdir .ssh
+wget -q "${GENTOO_INSTALLER_URL}/hyprland/dotfiles.zip"
+unzip -q dotfiles.zip
+chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
+rm -f dotfiles.zip
+
 # Cleanup
 rm -f /root/gentoo-chroot.sh
 CHROOT_SCRIPT_END
