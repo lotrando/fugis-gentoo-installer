@@ -3,6 +3,9 @@
 # APP-ADMIN
 app-admin/sudo -sendmail
 
+# APP-ESELECT
+app-eselect/eselect-php fpm apache2
+
 # DEV-LANG
 dev-lang/php apache2 bcmath curl fpm gd mysql mysqli pdo soap sockets spell sqlite xmlreader xmlwriter zip
 
