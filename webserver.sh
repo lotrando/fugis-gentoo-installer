@@ -823,11 +823,11 @@ rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
 
-wget -q "${GENTOO_INSTALLER_URL}/hyprland/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/hyprland/package.mask"
+wget -q "${GENTOO_INSTALLER_URL}/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
@@ -912,12 +912,6 @@ emerge ${GENTOO_KERNEL}
 emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
-# Hyprland desktop ------------------------------------
-emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza btop app-misc/mc
-eselect repository enable guru && emaint sync -r guru
-emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
-# -----------------------------------------------------
-
 # GRUB configuration
 cat >> /etc/default/grub << GRUB_BLOCK_END
 GRUB_GFXMODE=${GRUB_GFX_MODE}
@@ -929,37 +923,42 @@ GRUB_BLOCK_END
 
 # Users and passwords
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
-useradd -m -G audio,video,usb,input,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
+useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
 # SUDO configuration
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 # GRUB Installation
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=HYPRLAND --recheck ${TARGET_DISK}
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add elogind boot && rc-update add dbus default
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
 # User config dotfiles
 cd /home/$GENTOO_USER/
-mkdir .ssh
-wget -q "${GENTOO_INSTALLER_URL}/hyprland/dotfiles.zip"
+wget -q "${GENTOO_INSTALLER_URL}/dotfiles.zip"
 unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
-# Oh-my-zsh
-emerge eselect-repository
-eselect repository enable mv && emaint sync -r mv
-emerge oh-my-zsh gentoo-zsh-completions zsh-completions
-git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
-git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-chsh -s /bin/zsh $GENTOO_USER
+# Web server [ install WEB server]
+emerge phpmyadmin dev-db/mysql dev-lang/php
+eselect php set cli php8.3 && eselect php set apache2 php8.3
+rm -R /usr/lib/tmpfiles.d/mysql.conf
+echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
+sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
+echo "ServerName localhost" >> /etc/apache2/httpd.conf
+rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
+cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
+chown -R apache:apache /var/www/ && usermod -aG apache realist
+chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+sed -i "s/\$cfg\['blowfish_secret'\] = '';/\$cfg['blowfish_secret'] = '${BLOWFISH_SECRET}';/" /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+emerge --config mysql
 
-# Cleanup
+# Remove chroot-script
 rm -f /root/gentoo-chroot.sh
 CHROOT_SCRIPT_END
 
@@ -977,7 +976,7 @@ echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed
 echo -e "${GREEN}║     You can now reboot and enjoy your new system! Lotrando     ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-echo -e "${GREEN}║                  sudo emerge -avUDNu @world                    ║${RESET}"
+echo -e "${GREEN}║                    sudo emerge -avUDu @world                   ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
 
 log_info "✓ Installation completed successfully!"
