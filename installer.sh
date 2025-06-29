@@ -799,6 +799,7 @@ GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
 GENTOO_USER="$GENTOO_USER"
 GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
 TARGET_DISK="$TARGET_DISK"
+BLOWFISH_SECRET="WntN0150l71sLq/{w4V0:ZXFv7WcB-Qz"
 EOF
 
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
@@ -931,11 +932,35 @@ rc-update add consolefont default && rc-update add numlock default && rc-update 
 
 # User config dotfiles
 cd /home/$GENTOO_USER/
-mkdir .ssh
 wget -q "${GENTOO_INSTALLER_URL}/dotfiles.zip"
-unzip -q dotfiles.zip
+unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
+
+# Oh-my-zsh
+emerge eselect-repository
+eselect repository enable mv && emaint sync -r mv
+emerge oh-my-zsh gentoo-zsh-completions zsh-completions
+git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
+git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+chsh -s /bin/zsh $GENTOO_USER
+
+# Web server [uncomment if install Gentoo linux as WEB server]
+emerge phpmyadmin dev-db/mysql dev-lang/php
+eselect php set cli php8.3 && eselect php set apache2 php8.3
+rm -R /usr/lib/tmpfiles.d/mysql.conf
+echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
+sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
+echo "ServerName localhost" >> /etc/apache2/httpd.conf
+rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
+cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
+chown -R apache:apache /var/www/ && usermod -aG apache realist
+chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+sed -i "s/\$cfg\['blowfish_secret'\] = '';/\$cfg['blowfish_secret'] = '${BLOWFISH_SECRET}';/" /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+emerge --config mysql
+
 
 # Cleanup
 rm -f /root/gentoo-chroot.sh

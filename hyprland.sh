@@ -939,9 +939,18 @@ rc-update add consolefont default && rc-update add numlock default && rc-update 
 cd /home/$GENTOO_USER/
 mkdir .ssh
 wget -q "${GENTOO_INSTALLER_URL}/hyprland/dotfiles.zip"
-unzip -q dotfiles.zip
+unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
+
+# Oh-my-zsh
+emerge eselect-repository
+eselect repository enable mv && emaint sync -r mv
+emerge oh-my-zsh gentoo-zsh-completions zsh-completions
+git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
+git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+chsh -s /bin/zsh $GENTOO_USER
 
 # Cleanup
 rm -f /root/gentoo-chroot.sh
