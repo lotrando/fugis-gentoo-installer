@@ -182,6 +182,7 @@ HEADER_TEXT=(
     "               - F U G I S -               "
     " Fast Universal Gentoo Installation Script "
     "  Created by Lotrando (c) 2024-2025 v 1.8  "
+    "            WEBSERVER VERSION              "
 )
 
 HEADER_WIDTH=0
@@ -947,7 +948,7 @@ rm -f dotfiles.zip
 
 # Web server [ install WEB server]
 emerge phpmyadmin dev-db/mysql dev-lang/php
-eselect php set cli php8.3 && eselect php set apache2 php8.3
+eselect php set cli php8.4 && eselect php set apache2 php8.4
 rm -R /usr/lib/tmpfiles.d/mysql.conf
 echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
 sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2

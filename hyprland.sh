@@ -12,7 +12,7 @@
 #    ░  Fast Universal Gentoo Installation Script   ░
 #    ░   Created by Lotrando (c) 2024-2025 v 1.8    ░
 #    ░                                              ░
-#    ░               HYPRLAND VERSION               ░
+#    ░              HYPRLAND VERSION                ░
 #    ░                                              ░
 #    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
@@ -182,6 +182,7 @@ HEADER_TEXT=(
     "               - F U G I S -               "
     " Fast Universal Gentoo Installation Script "
     "  Created by Lotrando (c) 2024-2025 v 1.8  "
+    "             HYPRLAND VERSION              "
 )
 
 HEADER_WIDTH=0

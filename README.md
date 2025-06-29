@@ -116,6 +116,43 @@ chmod +x [nameOfScript].sh && ./[nameOfScript].sh
 (25) sys-boot/grub
 (26) app-admin/sudo
 ```
+WEB SERVER
+```
+(27) app-admin/apache-tools
+(28) app-admin/metalog
+(29) app-admin/webapp-config
+(30) app-arch/libarchive
+(31) app-arch/lz4
+(32) app-crypt/rhash
+(33) app-dicts/aspell-cs
+(34) app-eselect/eselect-php
+(35) app-text/aspell
+(36) app-text/xmlto
+(37) dev-build/cmake
+(38) dev-db/mysql
+(39) dev-db/mysql-connector-c
+(40) dev-db/mysql-init-scripts
+(41) dev-db/phpmyadmin
+(42) dev-lang/nasm
+(43) dev-lang/php
+(44) dev-libs/apr
+(45) dev-libs/apr-util
+(46) dev-libs/icu
+(47) dev-libs/jsoncpp
+(48) dev-libs/libaio
+(49) dev-libs/libevent
+(50) dev-libs/libuv
+(51) dev-libs/libzip
+(52) mail-mta/nullmailer
+(53) media-libs/gd
+(54) media-libs/libjpeg-turbo
+(55) net-dns/c-ares
+(56) net-libs/nghttp2
+(57) net-libs/libpsl
+(58) net-libs/rpcsvc-proto
+(59) net-misc/curl
+```
+
 
 ### Installation steps
 ```
