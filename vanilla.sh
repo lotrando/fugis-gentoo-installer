@@ -286,6 +286,41 @@ PARTED_END
     fi
 }
 
+# Mount filesystems
+mount_filesystems() {
+    log_info "✓ Mounting created filesystems"
+
+    if ! mkdir -p /mnt/gentoo; then
+        log_error "Failed to create mount point"
+        exit 1
+    fi
+
+    if ! mount -t f2fs ${ROOT_PARTITION} /mnt/gentoo -o compress_algorithm=zstd,compress_extension=*; then
+        log_error "Failed to mount root partition"
+        exit 1
+    fi
+
+    if ! chattr -R +c /mnt/gentoo; then
+        log_warning "Failed to set compression attribute (non-critical)"
+    fi
+
+    if ! mkdir -p /mnt/gentoo/boot; then
+        log_error "Failed to create boot directory"
+        exit 1
+    fi
+
+    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
+        log_error "Failed to mount boot partition"
+        exit 1
+    fi
+
+    # Activvate swap if exists
+    if [[ "$SWAP_TYPE" == "partition" ]]; then
+        log_info "✓ Activating swap partition"
+        swapon ${TARGET_PART}2
+    fi
+}
+
 ## Installer header
 HEADER_TEXT=(
     "               - F U G I S -               "
