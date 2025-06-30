@@ -705,7 +705,8 @@ else
     TARGET_CIDR="24"  # default for DHCP (not used but defined)
 fi
 
-# Installation starts here
+# Installation starts here !!!
+echo ""
 log_info "✓ Starting installation process..."
 
 # DISK SETUP with error handling
@@ -944,7 +945,9 @@ source /etc/profile >/dev/null 2>&1
 
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
+log_info "✓ Installing firmware a start generate kernel"
 emerge linux-firmware genkernel && genkernel all
+log_info "✓ Installing important packages"
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
 log_info "✓ Configuring GRUB and setting resolution ${GRUB_GFX_MODE}"
