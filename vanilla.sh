@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                            ║
 # ║                  ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗                 ║
 # ║                  ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝                 ║
 # ║                  █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗                 ║
@@ -13,7 +12,6 @@
 # ║                   Created by Lotrando (c) 2024-2025 v 1.8                  ║
 # ║                                                                            ║
 # ║                              VANILLA VERSION                               ║
-# ║                                                                            ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
 # Fast Universal Gentoo Installation Script (c) debugging from 2024 - 2025 v 1.8
@@ -996,13 +994,6 @@ log_info "✓ Gentoo Linux installation completed successfully!"
 
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
-echo -e "${GREEN}║            ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗           ║${RESET}"
-echo -e "${GREEN}║            ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝           ║${RESET}"
-echo -e "${GREEN}║            █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗           ║${RESET}"
-echo -e "${GREEN}║            ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║           ║${RESET}"
-echo -e "${GREEN}║            ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║           ║${RESET}"
-echo -e "${GREEN}║            ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝           ║${RESET}"
-echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                    INSTALLATION COMPLETE !                     ║${RESET}"
 echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed    ║${RESET}"
 echo -e "${GREEN}║         You can now reboot and enjoy your new system!          ║${RESET}"
