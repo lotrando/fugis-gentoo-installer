@@ -159,22 +159,33 @@ WEB SERVER
 ### Installation steps
 ```
 [INFO] ✓ Starting installation process...
-[INFO] ✓ Starting disk setup
+[INFO] ✓ Starting partitions setup
 [INFO] ✓ Creating partitions on /dev/sda
-[INFO] ✓ Creating swap partition
-[INFO] ✓ Creating filesystems
-[INFO] ✓ Mounting filesystems
-[INFO] ✓ Downloading latest stage3 tarball
-[INFO] ✓ Downloading: stage3-amd64-openrc-xxxxxxxxxxxxx.tar.xz
-[INFO] ✓ Extracting stage3: stage3-amd64-openrc-xxxxxxxxxxxxx.tar.xz
+[INFO] ✓ Creating filesystems on UEFI and ROOT partitions
+[INFO] ✓ Mounting created filesystems
+[INFO] ✓ Downloading: stage3-amd64-openrc-20250629T163708Z.tar.xz
+[INFO] ✓ Extracting stage3: stage3-amd64-openrc-20250629T163708Z.tar.xz
 [INFO] ✓ Cleaning up downloaded tarball
 [INFO] ✓ Mounting [proc sys dev run] filesystems
-[INFO] ✓ Detected AMD GPU
+[INFO] ✓ Detected Intel GPU
 [INFO] ✓ Detect CPU flags: aes avx avx2 bmi1 bmi2 f16c fma3 mmx mmxext pclmul popcnt rdrand sse sse2 sse3 sse4_1 sse4_2 ssse3
 [INFO] ✓ Detect MAKEOPTS: -j6
 [INFO] ✓ Creating configuration for chroot
 [INFO] ✓ Creating chroot installation script
 [INFO] ✓ Entering chroot and starting installation
+[INFO] ✓ Starting chroot installation
+[INFO] ✓ Updating portage tree
+[INFO] ✓ Configuring portage
+[INFO] ✓ Configuring GPU in make.conf
+[INFO] ✓ Configuring CPU FLAGS in make.conf
+[INFO] ✓ Configuring MAKEOPTS in make.conf
+[INFO] ✓ Make /etc/fstab
+[INFO] ✓ Configuring [hostname, consolefont, hosts]
+[INFO] ✓ Configuring LAN
+[INFO] ✓ Configuring keymap
+[INFO] ✓ Configuring locales
+[INFO] ✓ Setting timezone
+[INFO] ✓ Installing kernel packages
 [INFO] ✓ Installation completed successfully!
 [INFO] ✓ Cleaning up...
 ```
