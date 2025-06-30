@@ -2,7 +2,9 @@
 ---
 ### Fast Universal Gentoo Installation Script
 
- is a tweaked bash script that quickly install a basic and clean Gentoo Linux onto your hard drive. <strong>installer.sh</strong> is pure Gentoo Linux. And the other scripts is modified and install additional packages. Script <strong>webserver.sh</strong> instal classic web server latest php apache mysql server and phpmyadmin. Script <strong>hyprland.sh</strong> install packages where after do tty login automaticaly run Hyprland desktop.
+ is a tweaked bash script that quickly install a basic and clean Gentoo Linux onto your hard drive. **installer.sh** is pure Gentoo Linux. And the other scripts is modified and install additional packages. Script **webserver.sh** instal classic web server latest php apache mysql server and phpmyadmin. Script **hyprland.sh** install packages where after do tty login automaticaly run Hyprland desktop.
+
+ ---
 
 ### Positives of the Script
 
@@ -179,3 +181,27 @@ WEB SERVER
 ### Screen after installation
 
 <img src="after_install.png" alt="Screenshot after instalation procedure" />
+
+### Keybinding of Hyprland desktop ( hyprland.sh )
+| Keys                | Function                            |
+| ------------------- | ----------------------------------- |
+| Win-Shift-Enter     | Rofi Drun                           |
+| Win-Shift-Backspace | Rofi Apps                           |
+| Win-Shift-p         | Rofi Powermenu                      |
+| Win-Shift-q         | Hyperland Quit                      |
+| Win-Shift-c         | Kill focused window                 |
+| Win-Enter           | Run Kitty                           |
+| Win-Alt-b           | Run Firefox                         |
+| Win-Alt-f           | Run Thunar                          |
+| Win-Alt-t           | Run Btop                            |
+| Win-j               | Shrink vert window width            |
+| Win-m               | Move focus to the master window     |
+| Win-Up              | Move focus to the next window       |
+| Win-Down            | Move focus to the prev window       |
+| Win-Right.          | Switch focus to next monitor        |
+| Win-Left,           | Switch focus to prev monitor        |
+| Win-t               | Toggle floating window back to tile |
+| Win-Space           | Toggles noborder/full               |
+| Win-s               | Grab all monitors screenshot        |
+| Win-Alt-s           | Chose monitor to grab screenshot    |
+| Win-Alt-a           | Chose area to grab screenshot       |
