@@ -711,8 +711,6 @@ log_info "✓ Starting installation process..."
 # DISK SETUP with error handling
 log_info "✓ Starting partitions setup"
 
-
-
 create_disk_partitions
 mount_filesystems
 
