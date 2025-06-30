@@ -1,26 +1,24 @@
 #!/bin/bash
 
-#    ╔═════════════════════════════════════════════════╗
-#    ║                                                 ║
-#    ║    ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗    ║
-#    ║    ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝    ║
-#    ║    █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗    ║
-#    ║    ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║    ║
-#    ║    ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║    ║
-#    ║    ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝    ║
-#    ║                                                 ║
-#    ║    Fast Universal Gentoo Installation Script    ║
-#    ║     Created by Lotrando (c) 2024-2025 v 1.8     ║
-#    ║                                                 ║
-#    ║               WEBSERVER VERSION                 ║
-#    ║                                                 ║
-#    ╚═════════════════════════════════════════════════╝
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║                                                                            ║
+# ║                  ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗                 ║
+# ║                  ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝                 ║
+# ║                  █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗                 ║
+# ║                  ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║                 ║
+# ║                  ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║                 ║
+# ║                  ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝                 ║
+# ║                                                                            ║
+# ║                  Fast Universal Gentoo Installation Script                 ║
+# ║                   Created by Lotrando (c) 2024-2025 v 1.8                  ║
+# ║                                                                            ║
+# ║                              VANILLA VERSION                               ║
+# ║                                                                            ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
 
-# Fast Universal Gentoo Installation Script (c) 2024 - 2025 v 1.8
-# This script is designed to be run from a live environment from USB
-# It will install Gentoo Linux on the specified target partition
-
-# This is WEBSERVER version - install complete XAMPP server [ APACHE, PHP, MYSQL, PHPMYADMIN ]
+# Fast Universal Gentoo Installation Script (c) debugging from 2024 - 2025 v 1.8
+# This script is designed to be run from live environment USB boot flashdisk key
+# It will install Gentoo Linux on specified target hard drive minimal packages
 
 # FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
 # make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
@@ -28,8 +26,9 @@
 export TERM=xterm-256color
 clear
 
-# Installer base URL
+# Important variables
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
+GENTOO_LOG_FILE="/tmp/fugis.log"
 
 # Colors
 RED='\033[1;31m'
@@ -48,24 +47,15 @@ LIGHT_CYAN='\033[1;36m'
 UNDERLINE='\033[4m'
 RESET='\033[0m'
 
-# Logging functions
-GENTOO_LOG_FILE="fugis.log"
-
-# Initialize clean log file
-echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
-trap 'handle_error $LINENO' ERR
-set -e
-trap cleanup EXIT
+# Strip ANSI color codes function
+strip_colors() {
+    sed 's/\x1b\[[0-9;]*m//g'
+}
 
 # Cleanup function
 cleanup() {
     log_info "✓ Cleaning up..."
     umount -Rf /mnt/gentoo 2>/dev/null || true
-}
-
-# Function to strip ANSI color codes
-strip_colors() {
-    sed 's/\x1b\[[0-9;]*m//g'
 }
 
 # Logging functions info
@@ -96,22 +86,15 @@ handle_error() {
     exit 1
 }
 
-# Validation for IP
-validate_ip() {
-    local ip=$1
-    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        IFS='.' read -ra ADDR <<< "$ip"
-        for i in "${ADDR[@]}"; do
-            if [[ $i -gt 255 || $i -lt 0 ]]; then
-                return 1
-            fi
-        done
-        return 0
-    fi
-    return 1
-}
+# Initialize clean log file
+echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
+trap 'handle_error $LINENO' ERR
+set -e
+trap cleanup EXIT
 
-# Netmask to CDIR convert
+## Input validations, detections, convertors functions
+
+# Convert Netmask to CDIR
 netmask_to_cidr() {
     local netmask="$1"
     local cidr=0
@@ -136,7 +119,23 @@ netmask_to_cidr() {
     echo "$cidr"
 }
 
-# Validation functions for hostname
+# Validation IP
+validate_ip() {
+    local ip=$1
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        IFS='.' read -ra ADDR <<< "$ip"
+        for i in "${ADDR[@]}"; do
+            if [[ $i -gt 255 || $i -lt 0 ]]; then
+                return 1
+            fi
+        done
+        return 0
+    fi
+    return 1
+}
+
+
+# Validation Hostname
 validate_hostname() {
     local hostname=$1
     if [[ $hostname =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$ ]]; then
@@ -145,7 +144,7 @@ validate_hostname() {
     return 1
 }
 
-# Validation functions for username
+# Validation Username
 validate_username() {
     local username=$1
     if [[ $username =~ ^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]; then
@@ -154,6 +153,45 @@ validate_username() {
     return 1
 }
 
+# Detect CPU Cores
+optimize_makeopts() {
+    # Detect CPU makeopts
+    GENTOO_MAKEOPTS="-j$(nproc)"
+    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
+}
+
+# Detect CPU Flags
+optimize_cpu_flags() {
+    # Detect CPU flags
+    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
+    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
+}
+
+# Detect GPU
+detect_gpu() {
+    # GPU specifické flagy
+    if lspci | grep -i nvidia &>/dev/null; then
+        GENTOO_GPU="nvidia"
+        log_info "✓ Detected NVIDIA GPU"
+    elif lspci | grep -i amd &>/dev/null; then
+        GENTOO_GPU="amdgpu radeonsi"
+        log_info "✓ Detected AMD GPU"
+    elif lspci | grep -i intel &>/dev/null; then
+        GENTOO_GPU="intel i965"
+        log_info "✓ Detected Intel GPU"
+    elif lspci | grep -i vmware &>/dev/null; then
+        GENTOO_GPU="vmware"
+        log_info "✓ Detected VMware virtual GPU"
+    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
+        GENTOO_GPU="virtualbox"
+        log_info "✓ Detected VirtualBox virtual GPU"
+    else
+        GENTOO_GPU="fbdev vesa"
+        log_info "✓ No specific GPU detected, using generic drivers"
+    fi
+}
+
+## Partition functions
 # Configure SWAP partition
 configure_swap_partition() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
@@ -180,12 +218,80 @@ configure_swap_partition() {
     done
 }
 
-# Installer header
+# Create partitions
+create_disk_partitions() {
+    log_info "✓ Creating partitions on ${TARGET_DISK}"
+
+    if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
+        log_error "Failed to create GPT partition table"
+        exit 1
+    fi
+
+    if [[ "$SWAP_TYPE" == "partition" ]]; then
+        # UEFI, SWAP, ROOT
+        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
+unit mib
+mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+name 1 UEFI
+set 1 bios_grub on
+mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
+name 2 SWAP
+mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
+name 3 ROOT
+quit
+PARTED_END
+        then
+            log_error "Failed to create partitions with swap"
+            exit 1
+        fi
+
+        # Make SWAP
+        log_info "✓ Creating swap partition"
+        if ! mkswap -L SWAP ${TARGET_PART}2 &>/dev/null; then
+            log_error "Failed to create swap partition"
+            exit 1
+        fi
+        # Make ROOT
+        ROOT_PARTITION="${TARGET_PART}3"
+    else
+        # Two partitions: UEFI, ROOT [no swap]
+        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
+unit mib
+mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+name 1 UEFI
+set 1 bios_grub on
+mkpart primary ${UEFI_DISK_SIZE} -1
+name 2 ROOT
+quit
+PARTED_END
+        then
+            log_error "Failed to create partitions"
+            exit 1
+        fi
+
+        ROOT_PARTITION="${TARGET_PART}2"
+    fi
+
+    # Make filesystems
+    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
+
+    if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
+        log_error "Failed to create UEFI filesystem"
+        exit 1
+    fi
+
+    if ! mkfs.f2fs -l ROOT -O extra_attr,inode_checksum,sb_checksum,compression -f ${ROOT_PARTITION} &>/dev/null; then
+        log_error "Failed to create root filesystem"
+        exit 1
+    fi
+}
+
+## Installer header
 HEADER_TEXT=(
     "               - F U G I S -               "
     " Fast Universal Gentoo Installation Script "
     "  Created by Lotrando (c) 2024-2025 v 1.8  "
-    "             WEBSERVER VERSION             "
+    "              Vanilla version              "
 )
 
 HEADER_WIDTH=0
@@ -231,7 +337,7 @@ fi
 
 log_info "✓ All prerequisites met"
 
-# Input settings function
+## Input settings function
 input_settings() {
 
     # UEFI partition size input
@@ -338,9 +444,9 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Kernel selection:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (optimized for hyprland)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (optimized for desktop)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (development kernel)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (optimized for webserver)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
 
     while true; do
         echo ""
@@ -381,14 +487,14 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Setup locales:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}Czech (cs_CZ.UTF-8)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}English (en_US.UTF-8)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}English (en_US.UTF-8)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Czech (cs_CZ.UTF-8)${RESET}"
 
     while true; do
         read -p "$(echo -e "${BLUE}Select locale (1-2):${RESET} ")" locale_choice
         case "$locale_choice" in
-            1) GENTOO_LOCALE="cs_CZ.UTF-8"; break ;;
-            2) GENTOO_LOCALE="en_US.UTF-8"; break ;;
+            1) GENTOO_LOCALE="en_US.UTF-8"; break ;;
+            2) GENTOO_LOCALE="cs_CZ.UTF-8"; break ;;
             *) log_error "Invalid choice. Please try again." ;;
         esac
     done
@@ -406,6 +512,7 @@ input_settings() {
     echo ""
 
     for i in "${!DISKS[@]}"; do
+        # Zobrazit dodatečné informace o disku
         disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
         echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
     done
@@ -567,148 +674,9 @@ fi
 log_info "✓ Starting installation process..."
 
 # DISK SETUP with error handling
-log_info "✓ Starting disk setup"
+log_info "✓ Starting partitions setup"
 
-create_disk_partitions() {
-    # Create partitions
-    log_info "✓ Creating partitions on ${TARGET_DISK}"
 
-    if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
-        log_error "Failed to create GPT partition table"
-        exit 1
-    fi
-
-    if [[ "$SWAP_TYPE" == "partition" ]]; then
-        # UEFI, SWAP, ROOT
-        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
-unit mib
-mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-name 1 UEFI
-set 1 bios_grub on
-mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
-name 2 SWAP
-mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
-name 3 ROOT
-quit
-PARTED_END
-        then
-            log_error "Failed to create partitions with swap"
-            exit 1
-        fi
-
-        # Make SWAP
-        log_info "✓ Creating swap partition"
-        if ! mkswap -L SWAP ${TARGET_PART}2 &>/dev/null; then
-            log_error "Failed to create swap partition"
-            exit 1
-        fi
-        # Make ROOT
-        ROOT_PARTITION="${TARGET_PART}3"
-    else
-        # Two partitions: UEFI, ROOT [no swap]
-        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
-unit mib
-mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-name 1 UEFI
-set 1 bios_grub on
-mkpart primary ${UEFI_DISK_SIZE} -1
-name 2 ROOT
-quit
-PARTED_END
-        then
-            log_error "Failed to create partitions"
-            exit 1
-        fi
-
-        ROOT_PARTITION="${TARGET_PART}2"
-    fi
-
-    # Make filesystems
-    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
-
-    if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
-        log_error "Failed to create UEFI filesystem"
-        exit 1
-    fi
-
-    if ! mkfs.f2fs -l ROOT -O extra_attr,inode_checksum,sb_checksum,compression -f ${ROOT_PARTITION} &>/dev/null; then
-        log_error "Failed to create root filesystem"
-        exit 1
-    fi
-}
-
-# Mount filesystems
-mount_filesystems() {
-    log_info "✓ Mounting created filesystems"
-
-    if ! mkdir -p /mnt/gentoo; then
-        log_error "Failed to create mount point"
-        exit 1
-    fi
-
-    if ! mount -t f2fs ${ROOT_PARTITION} /mnt/gentoo -o compress_algorithm=zstd,compress_extension=*; then
-        log_error "Failed to mount root partition"
-        exit 1
-    fi
-
-    if ! chattr -R +c /mnt/gentoo; then
-        log_warning "Failed to set compression attribute (non-critical)"
-    fi
-
-    if ! mkdir -p /mnt/gentoo/boot; then
-        log_error "Failed to create boot directory"
-        exit 1
-    fi
-
-    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
-        log_error "Failed to mount boot partition"
-        exit 1
-    fi
-
-    # Activvate swap if exists
-    if [[ "$SWAP_TYPE" == "partition" ]]; then
-        log_info "✓ Activating swap partition"
-        swapon ${TARGET_PART}2
-    fi
-}
-
-# Detect CPU Cores
-optimize_makeopts() {
-    # Detect CPU makeopts
-    GENTOO_MAKEOPTS="-j$(nproc)"
-    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
-}
-
-# Detect CPU Flags
-optimize_cpu_flags() {
-    # Detect CPU flags
-    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
-    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
-}
-
-# Detect GPU
-detect_gpu() {
-    # GPU specifické flagy
-    if lspci | grep -i nvidia &>/dev/null; then
-        GENTOO_GPU="nvidia"
-        log_info "✓ Detected NVIDIA GPU"
-    elif lspci | grep -i amd &>/dev/null; then
-        GENTOO_GPU="amdgpu radeonsi"
-        log_info "✓ Detected AMD GPU"
-    elif lspci | grep -i intel &>/dev/null; then
-        GENTOO_GPU="intel i965"
-        log_info "✓ Detected Intel GPU"
-    elif lspci | grep -i vmware &>/dev/null; then
-        GENTOO_GPU="vmware"
-        log_info "✓ Detected VMware virtual GPU"
-    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
-        GENTOO_GPU="virtualbox"
-        log_info "✓ Detected VirtualBox virtual GPU"
-    else
-        GENTOO_GPU="fbdev vesa"
-        log_info "✓ No specific GPU detected, using generic drivers"
-    fi
-}
 
 create_disk_partitions
 mount_filesystems
@@ -810,39 +778,69 @@ GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
 GENTOO_USER="$GENTOO_USER"
 GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
 TARGET_DISK="$TARGET_DISK"
-BLOWFISH_SECRET="WntN0150l71sLq/{w4V0:ZXFv7WcB-Qz"
+GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 EOF
 
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 #!/bin/bash
 
+# Colors
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
+
+log_info() {
+    local message="[INFO] $1"
+    echo -e "${GREEN}${message}${RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
+}
+
+log_error() {
+    local message="[ERROR] $1"
+    echo -e "${RED}${message}${RESET}" >&2
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
+}
+
+log_warning() {
+    local message="[WARNING] $1"
+    echo -e "${YELLOW}${message}${RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
+}
+
 # Chroot config load
 source /tmp/chroot_config
 
+log_info "✓ Starting chroot installation"
+
+log_info "✓ Updating portage tree"
 emerge-webrsync &>/dev/null
 eselect news read new &>/dev/null
 
+log_info "✓ Configuring portage"
 cd /etc/portage/
 rm -f make.conf
 rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
+wget -q "${GENTOO_INSTALLER_URL}/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/package.mask"
 
-wget -q "${GENTOO_INSTALLER_URL}/webserver/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/webserver/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/webserver/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/webserver/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/webserver/package.mask"
-
+log_info "✓ Configuring GPU in make.conf"
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
 else
     echo "VIDEO_CARDS=\"fbdev vesa\"" >> make.conf
 fi
+log_info "✓ Configuring CPU FLAGS in make.conf"
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
+log_info "✓ Configuring MAKEOPTS in make.conf"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
-# Make fstab
+log_info "✓ Make /etc/fstab"
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
@@ -856,13 +854,13 @@ else
     echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
 
-# System configuration
+log_info "✓ Configuring [hostname, consolefont, hosts]"
 sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
 sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
-# LAN configuration
+log_info "✓ Configuring LAN"
 if [[ "$NET_MODE" == "dhcp" ]]; then
     cat > /etc/dhcpcd.conf << 'DHCP_BLOCK_END'
 # DHCP configuration
@@ -879,8 +877,6 @@ STATIC_BLOCK_END
     echo "static domain_name_servers=${TARGET_DNS}" >> /etc/dhcpcd.conf
     echo "nodhcp" >> /etc/dhcpcd.conf
 fi
-
-# Backup LAN configuration
 if [[ "$NET_MODE" == "dhcp" ]]; then
     echo "config_${TARGET_LAN}=\"dhcp\"" > /etc/conf.d/net
 else
@@ -889,13 +885,13 @@ else
     echo "dns_${TARGET_LAN}=\"${TARGET_DNS}\"" >> /etc/conf.d/net
 fi
 
-# Keymap configuration
+log_info "✓ Configuring keymap"
 cat > /etc/conf.d/keymaps << 'KEYMAP_BLOCK_END'
 keymap="us"
 KEYMAP_BLOCK_END
 sed -i "s/us/$GENTOO_KEYMAP/g" /etc/conf.d/keymaps
 
-# Locale configuration
+log_info "✓ Configuring locales"
 cat > /etc/locale.gen << 'LOCALE_BLOCK_END'
 en_US.UTF-8 UTF-8
 LOCALE_BLOCK_END
@@ -907,17 +903,18 @@ LC_COLLATE="C"
 LOCALE_ENV_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/env.d/02locale
 
+log_info "✓ Setting timezone"
 locale-gen --quiet
 echo "$GENTOO_ZONEINFO" > /etc/timezone
 env-update >/dev/null 2>&1
 source /etc/profile >/dev/null 2>&1
 
-# Kernel and packages
+log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
 emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
-# GRUB configuration
+log_info "✓ Configuring GRUB and setting resolution ${GRUB_GFX_MODE}"
 cat >> /etc/default/grub << GRUB_BLOCK_END
 GRUB_GFXMODE=${GRUB_GFX_MODE}
 GRUB_GFXPAYLOAD_LINUX=keep
@@ -926,45 +923,30 @@ GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
-# Users and passwords
+log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
+log_info "✓ Create user $GENTOO_USER and his password"
 useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
-# SUDO configuration
+log_info "✓ Configuring SUDO for $GENTOO_USER"
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
-# GRUB Installation
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=WEBSERVER --recheck ${TARGET_DISK}
+log_info "✓ Installing GRUB and create config file"
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# Services
+log_info "✓ Running services"
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
-# User config dotfiles
+log_info "✓ Installing user configuration files"
 cd /home/$GENTOO_USER/
 wget -q "${GENTOO_INSTALLER_URL}/dotfiles.zip"
 unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
-# Web server installation
-emerge phpmyadmin dev-db/mysql dev-lang/php
-eselect php set cli php8.4 && eselect php set apache2 php8.4
-rm -R /usr/lib/tmpfiles.d/mysql.conf
-echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
-sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
-echo "ServerName localhost" >> /etc/apache2/httpd.conf
-rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
-cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
-mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
-chown -R apache:apache /var/www/ && usermod -aG apache realist
-chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
-sed -i "s/\$cfg\['blowfish_secret'\] = '';/\$cfg['blowfish_secret'] = '${BLOWFISH_SECRET}';/" /var/www/localhost/htdocs/phpmyadmin/config.inc.php
-rc-update add apache2 default && rc-update add mysql default
-emerge --config mysql
-
-# Remove chroot-script
+log_info "✓ Removing chroot script"
 rm -f /root/gentoo-chroot.sh
 CHROOT_SCRIPT_END
 
@@ -974,7 +956,8 @@ log_info "✓ Entering chroot and starting installation"
 chmod +x /mnt/gentoo/root/gentoo-chroot.sh
 chroot /mnt/gentoo /root/gentoo-chroot.sh
 
-#  Instalation Complete!
+log_info "✓ Gentoo Linux installation completed successfully!"
+
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
 echo -e "${GREEN}║            ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗           ║${RESET}"
@@ -988,11 +971,7 @@ echo -e "${GREEN}║                    INSTALLATION COMPLETE !                 
 echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed    ║${RESET}"
 echo -e "${GREEN}║         You can now reboot and enjoy your new system!          ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
-echo -e "${GREEN}║                                                                ║${RESET}"
-echo -e "${GREEN}║ http://localhost is your new Apache webserver with latest php  ║${RESET}"
-echo -e "${GREEN}║ http://localhost/phpmyadmin/ is your mySQL manager phpMyAdmin  ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-echo -e "${GREEN}║                    sudo emerge -avUDu @world                   ║${RESET}"
+echo -e "${GREEN}║                   sudo emerge -avUDu @world                    ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
 
-log_info "✓ Installation completed successfully!"
