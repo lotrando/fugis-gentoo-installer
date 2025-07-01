@@ -59,20 +59,15 @@ chmod +x installer.sh
 - boot from USB stick
 - in command line run two command lines one with chosen script
 
-1. Vanilla
- ```
-wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/vanilla.sh
-```
-
-2. Classic
+1. Pure Gentoo linux
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
 ```
-3. Webserver
+2. Webserver
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/webserver.sh
 ```
-4. Hyprland Desktop
+3. Hyprland Desktop
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/hyprland.sh
 ```
