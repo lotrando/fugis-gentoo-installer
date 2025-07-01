@@ -1,5 +1,0 @@
-# package.license file -> /etc/portage/package.license
-
-# SYS-KERNEL
-sys-kernel/linux-firmware linux-fw-redistributable no-source-code
-

@@ -824,18 +824,21 @@ RESET='\033[0m'
 
 log_info() {
     local message="[INFO] $1"
+    echo ""
     echo -e "${GREEN}${message}${RESET}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
 
 log_error() {
     local message="[ERROR] $1"
+    echo ""
     echo -e "${RED}${message}${RESET}" >&2
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
 
 log_warning() {
     local message="[WARNING] $1"
+    echo ""
     echo -e "${YELLOW}${message}${RESET}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
@@ -855,11 +858,11 @@ rm -f make.conf
 rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
-wget -q "${GENTOO_INSTALLER_URL}/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/package.mask"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/package.mask"
 
 log_info "✓ Configuring GPU in make.conf"
 if [[ -n "$GENTOO_GPU" ]]; then
@@ -944,7 +947,9 @@ source /etc/profile >/dev/null 2>&1
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
 log_info "✓ Installing firmware a start generate kernel"
-emerge linux-firmware genkernel && genkernel all
+emerge linux-firmware genkernel
+log_info "✓ Generating kernel"
+genkernel all
 log_info "✓ Installing important packages"
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
@@ -969,7 +974,7 @@ sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 log_info "✓ Installing GRUB and create config file"
 cd /boot/grub/
-wget -q "${GENTOO_INSTALLER_URL}/grub.png"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/grub.png"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=HYPRLAND --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -978,7 +983,7 @@ rc-update add consolefont default && rc-update add numlock default && rc-update 
 
 log_info "✓ Installing user configuration files"
 cd /home/$GENTOO_USER/
-wget -q "${GENTOO_INSTALLER_URL}/dotfiles.zip"
+wget -q "${GENTOO_INSTALLER_URL}/vanilla/dotfiles.zip"
 unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
