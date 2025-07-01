@@ -946,25 +946,29 @@ emerge ${GENTOO_KERNEL}
 emerge linux-firmware genkernel && genkernel all
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
-# GRUB configuration
+log_info "✓ Configuring GRUB and setting resolution ${GRUB_GFX_MODE}"
 cat >> /etc/default/grub << GRUB_BLOCK_END
 GRUB_GFXMODE=${GRUB_GFX_MODE}
 GRUB_GFXPAYLOAD_LINUX=keep
+GRUB_BACKGROUND="/boot/grub/grub.png"
 GRUB_DISABLE_OS_PROBER=true
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
-# Users and passwords
+log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
+log_info "✓ Create user $GENTOO_USER and his password"
 useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
-# SUDO configuration
+log_info "✓ Configuring SUDO for $GENTOO_USER"
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
-# GRUB Installation
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=WEBSERVER --recheck ${TARGET_DISK}
+log_info "✓ Installing GRUB and create config file"
+cd /boot/grub/
+wget -q "${GENTOO_INSTALLER_URL}/webserver/grub.png"
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=HYPRLAND --recheck ${TARGET_DISK}
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Services
