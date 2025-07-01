@@ -824,21 +824,18 @@ RESET='\033[0m'
 
 log_info() {
     local message="[INFO] $1"
-    echo ""
     echo -e "${GREEN}${message}${RESET}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
 
 log_error() {
     local message="[ERROR] $1"
-    echo ""
     echo -e "${RED}${message}${RESET}" >&2
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
 
 log_warning() {
     local message="[WARNING] $1"
-    echo ""
     echo -e "${YELLOW}${message}${RESET}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
