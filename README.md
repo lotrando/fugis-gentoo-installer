@@ -57,27 +57,27 @@ chmod +x installer.sh
 
 #### 2. Run downloaded script direct from shell
 - boot from USB stick
-- in command line run two command lines
+- in command line run two command lines one with chosen script
 
-use Vanilla
+1. Vanilla
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/vanilla.sh
 ```
 
-use Classic
+2. Classic
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
 ```
-or Webserver
+3. Webserver
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/webserver.sh
 ```
-or Hyprland Desktop
+4. Hyprland Desktop
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/hyprland.sh
 ```
 ```
-chmod +x [nameOfScript].sh && ./[nameOfScript].sh
+chmod +x script_name && ./script_name
 ```
 
 ### Installation procedure
