@@ -813,7 +813,6 @@ TARGET_DISK="$TARGET_DISK"
 GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 BLOWFISH_SECRET="WntN0150l71sLq/{w4V0:ZXFv7WcB-Qz"
 EOF
-EOF
 
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 #!/bin/bash
