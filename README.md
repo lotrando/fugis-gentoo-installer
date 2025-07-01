@@ -59,6 +59,11 @@ chmod +x installer.sh
 - boot from USB stick
 - in command line run two command lines
 
+use Vanilla
+ ```
+wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/vanilla.sh
+```
+
 use Classic
  ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
@@ -82,7 +87,7 @@ chmod +x [nameOfScript].sh && ./[nameOfScript].sh
 - it will take some time to compile the kernel and packages
 - reboot and use new clear Gentoo linux
 
-<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
+<img src="screens/screen.png" alt="Screenshot of settings before instalation procedure" />
 
 ### Script install only contain 26 important packages and kernel if used zen kernel sources
 
@@ -191,7 +196,7 @@ WEB SERVER
 ```
 ### Screen after installation
 
-<img src="after_install.png" alt="Screenshot after instalation procedure" />
+<img src="screens/after_install.png" alt="Screenshot after instalation procedure" />
 
 ### Keybinding of Hyprland desktop ( hyprland.sh )
 | Keys                | Function                            |
