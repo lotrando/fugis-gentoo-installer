@@ -14,17 +14,7 @@
 # ║                              TESTING VERSION                               ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
-# Fast Universal Gentoo Installation Script (c) debugging from 2024 - 2025 v 1.8
-# This script is designed to be run from live environment USB boot flashdisk key
-# It will install Gentoo Linux on specified target hard drive minimal packages
-
-# FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
-# make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
-
-export TERM=xterm-256color
-clear
-
-# Important variables
+# Variables
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
 GENTOO_LOG_FILE="/tmp/fugis.log"
 
@@ -45,15 +35,28 @@ LIGHT_CYAN='\033[1;36m'
 UNDERLINE='\033[4m'
 RESET='\033[0m'
 
-# Strip ANSI color codes function
+# Set default terminal type
+export TERM=xterm-256color
+
+# Clear the terminal
+clear
+
+# Strip ANSI color
 strip_colors() {
     sed 's/\x1b\[[0-9;]*m//g'
 }
 
-# Cleanup function
+# Umount partitions function
 cleanup() {
-    log_info "✓ Cleaning up..."
-    #umount -Rf /mnt/gentoo 2>/dev/null || true
+    log_info "✓ Umount /mnt/gentoo ..."
+    umount -Rf /mnt/gentoo 2>/dev/null || true
+}
+
+# Error handling
+handle_error() {
+    log_error "Script failed at line $1"
+    cleanup
+    exit 1
 }
 
 # Logging functions info
@@ -77,20 +80,43 @@ log_warning() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
 }
 
-# Error handling
-handle_error() {
-    log_error "Script failed at line $1"
-    cleanup
-    exit 1
+# Detect CPU Cores
+optimize_makeopts() {
+    # Detect CPU makeopts
+    GENTOO_MAKEOPTS="-j$(nproc)"
+    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
 }
 
-# Initialize clean log file
-echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
-trap 'handle_error $LINENO' ERR
-set -e
-trap cleanup EXIT
+# Detect CPU Flags
+optimize_cpu_flags() {
+    # Detect CPU flags
+    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
+    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
+}
 
-## Input validations, detections, convertors functions
+# Detect GPU
+detect_gpu() {
+    # GPU specifické flagy
+    if lspci | grep -i nvidia &>/dev/null; then
+        GENTOO_GPU="nvidia"
+        log_info "✓ Detected NVIDIA GPU"
+    elif lspci | grep -i amd &>/dev/null; then
+        GENTOO_GPU="amdgpu radeonsi"
+        log_info "✓ Detected AMD GPU"
+    elif lspci | grep -i intel &>/dev/null; then
+        GENTOO_GPU="intel i965"
+        log_info "✓ Detected Intel GPU"
+    elif lspci | grep -i vmware &>/dev/null; then
+        GENTOO_GPU="vmware"
+        log_info "✓ Detected VMware virtual GPU"
+    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
+        GENTOO_GPU="virtualbox"
+        log_info "✓ Detected VirtualBox virtual GPU"
+    else
+        GENTOO_GPU="fbdev vesa"
+        log_info "✓ No specific GPU detected, using generic drivers"
+    fi
+}
 
 # Convert Netmask to CDIR
 netmask_to_cidr() {
@@ -132,7 +158,6 @@ validate_ip() {
     return 1
 }
 
-
 # Validation Hostname
 validate_hostname() {
     local hostname=$1
@@ -151,45 +176,6 @@ validate_username() {
     return 1
 }
 
-# Detect CPU Cores
-optimize_makeopts() {
-    # Detect CPU makeopts
-    GENTOO_MAKEOPTS="-j$(nproc)"
-    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
-}
-
-# Detect CPU Flags
-optimize_cpu_flags() {
-    # Detect CPU flags
-    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
-    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
-}
-
-# Detect GPU
-detect_gpu() {
-    # GPU specifické flagy
-    if lspci | grep -i nvidia &>/dev/null; then
-        GENTOO_GPU="nvidia"
-        log_info "✓ Detected NVIDIA GPU"
-    elif lspci | grep -i amd &>/dev/null; then
-        GENTOO_GPU="amdgpu radeonsi"
-        log_info "✓ Detected AMD GPU"
-    elif lspci | grep -i intel &>/dev/null; then
-        GENTOO_GPU="intel i965"
-        log_info "✓ Detected Intel GPU"
-    elif lspci | grep -i vmware &>/dev/null; then
-        GENTOO_GPU="vmware"
-        log_info "✓ Detected VMware virtual GPU"
-    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
-        GENTOO_GPU="virtualbox"
-        log_info "✓ Detected VirtualBox virtual GPU"
-    else
-        GENTOO_GPU="fbdev vesa"
-        log_info "✓ No specific GPU detected, using generic drivers"
-    fi
-}
-
-## Partition functions
 # Configure SWAP partition
 configure_swap_partition() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
@@ -220,157 +206,138 @@ configure_swap_partition() {
 create_disk_partitions() {
     log_info "✓ Creating partitions on ${TARGET_DISK}"
 
-#     if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
-#         log_error "Failed to create GPT partition table"
-#         exit 1
-#     fi
+    if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
+        log_error "Failed to create GPT partition table"
+        exit 1
+    fi
 
-#     if [[ "$SWAP_TYPE" == "partition" ]]; then
-#         # UEFI, SWAP, ROOT
-#         if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
-# unit mib
-# mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-# name 1 UEFI
-# set 1 bios_grub on
-# mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
-# name 2 SWAP
-# mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
-# name 3 ROOT
-# quit
-# PARTED_END
-#         then
-#             log_error "Failed to create partitions with swap"
-#             exit 1
-#         fi
+    if [[ "$SWAP_TYPE" == "partition" ]]; then
+        # UEFI, SWAP, ROOT
+        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
+            unit mib
+            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+            name 1 UEFI
+            set 1 bios_grub on
+            mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
+            name 2 SWAP
+            mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
+            name 3 ROOT
+            quit
+PARTED_END
+        then
+            log_error "Failed to create partitions with swap"
+            exit 1
+        fi
 
-#         # Make SWAP
-#         log_info "✓ Creating swap partition"
-#         if ! mkswap -L SWAP ${TARGET_PART}2 &>/dev/null; then
-#             log_error "Failed to create swap partition"
-#             exit 1
-#         fi
-#         # Make ROOT
-#         ROOT_PARTITION="${TARGET_PART}3"
-#     else
-#         # Two partitions: UEFI, ROOT [no swap]
-#         if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
-# unit mib
-# mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-# name 1 UEFI
-# set 1 bios_grub on
-# mkpart primary ${UEFI_DISK_SIZE} -1
-# name 2 ROOT
-# quit
-# PARTED_END
-#         then
-#             log_error "Failed to create partitions"
-#             exit 1
-#         fi
+        # Make SWAP
+        log_info "✓ Creating swap partition"
+        if ! mkswap -L SWAP ${TARGET_PART}2 &>/dev/null; then
+            log_error "Failed to create swap partition"
+            exit 1
+        fi
+        # Make ROOT
+        ROOT_PARTITION="${TARGET_PART}3"
+    else
+        # Two partitions: UEFI, ROOT [no swap]
+        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
+            unit mib
+            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+            name 1 UEFI
+            set 1 bios_grub on
+            mkpart primary ${UEFI_DISK_SIZE} -1
+            name 2 ROOT
+            quit
+PARTED_END
+        then
+            log_error "Failed to create partitions"
+            exit 1
+        fi
 
-#         ROOT_PARTITION="${TARGET_PART}2"
-#     fi
+        ROOT_PARTITION="${TARGET_PART}2"
+    fi
+}
 
-#     # Make filesystems
-#     log_info "✓ Creating filesystems on UEFI and ROOT partitions"
+# Make filesystems
+make_filesystems() {
+    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
 
-#     if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
-#         log_error "Failed to create UEFI filesystem"
-#         exit 1
-#     fi
+    if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
+        log_error "Failed to create UEFI filesystem"
+        exit 1
+    fi
 
-#     if ! mkfs.f2fs -l ROOT -O extra_attr,inode_checksum,sb_checksum,compression -f ${ROOT_PARTITION} &>/dev/null; then
-#         log_error "Failed to create root filesystem"
-#         exit 1
-#     fi
+    if ! mkfs.f2fs -l ROOT -O extra_attr,inode_checksum,sb_checksum,compression -f ${ROOT_PARTITION} &>/dev/null; then
+        log_error "Failed to create root filesystem"
+        exit 1
+    fi
 }
 
 # Mount filesystems
 mount_filesystems() {
     log_info "✓ Mounting created filesystems"
 
-    # if ! mkdir -p /mnt/gentoo; then
-    #     log_error "Failed to create mount point"
-    #     exit 1
-    # fi
-
-    # if ! mount -t f2fs ${ROOT_PARTITION} /mnt/gentoo -o compress_algorithm=zstd,compress_extension=*; then
-    #     log_error "Failed to mount root partition"
-    #     exit 1
-    # fi
-
-    # if ! chattr -R +c /mnt/gentoo; then
-    #     log_warning "Failed to set compression attribute (non-critical)"
-    # fi
-
-    # if ! mkdir -p /mnt/gentoo/boot; then
-    #     log_error "Failed to create boot directory"
-    #     exit 1
-    # fi
-
-    # if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
-    #     log_error "Failed to mount boot partition"
-    #     exit 1
-    # fi
-
-    # # Activvate swap if exists
-    # if [[ "$SWAP_TYPE" == "partition" ]]; then
-    #     log_info "✓ Activating swap partition"
-    #     swapon ${TARGET_PART}2
-    # fi
-}
-
-## Installer header
-HEADER_TEXT=(
-    "               - F U G I S -               "
-    " Fast Universal Gentoo Installation Script "
-    "  Created by Lotrando (c) 2024-2025 v 1.8  "
-    "              TESTING version              "
-)
-
-HEADER_WIDTH=0
-for line in "${HEADER_TEXT[@]}"; do
-    [ ${#line} -gt $HEADER_WIDTH ] && HEADER_WIDTH=${#line}
-done
-HEADER_WIDTH=$((HEADER_WIDTH + 2))
-
-echo -e "${LIGHT_BLUE}╔$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╗${RESET}"
-for line in "${HEADER_TEXT[@]}"; do
-    printf "${LIGHT_BLUE}║ %-*s ║${RESET}\n" $((HEADER_WIDTH - 2)) "$line"
-done
-echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
-
-# Prerequisites check
-log_info "✓ Checks prerequisites for installation"
-
-# Check user must be root
-# if [ "$(id -u)" -ne 0 ]; then
-#     log_error "This script must be run as root!"
-#     exit 1
-# fi
-
-# Check if the script is run from a live environment
-# if [ ! -d "/mnt/gentoo" ]; then
-#     log_error "Must be run from a live environment!"
-#     exit 1
-# fi
-
-# Check required commands
-for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
-    if ! command -v "$cmd" &> /dev/null; then
-        log_error "Required command '$cmd' is not available"
+    if ! mkdir -p /mnt/gentoo; then
+        log_error "Failed to create mount point"
         exit 1
     fi
-done
 
-# Check internet connectivity
-if ! ping -c 1 8.8.8.8 &> /dev/null; then
-    log_error "No internet connectivity detected"
-    exit 1
-fi
+    if ! mount -t f2fs ${ROOT_PARTITION} /mnt/gentoo -o compress_algorithm=zstd,compress_extension=*; then
+        log_error "Failed to mount root partition"
+        exit 1
+    fi
 
-log_info "✓ All prerequisites met"
+    if ! chattr -R +c /mnt/gentoo; then
+        log_warning "Failed to set compression attribute (non-critical)"
+    fi
 
-## Input settings function
+    if ! mkdir -p /mnt/gentoo/boot; then
+        log_error "Failed to create boot directory"
+        exit 1
+    fi
+
+    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
+        log_error "Failed to mount boot partition"
+        exit 1
+    fi
+
+    # Activvate swap if exists
+    if [[ "$SWAP_TYPE" == "partition" ]]; then
+        log_info "✓ Activating swap partition"
+        swapon ${TARGET_PART}2
+    fi
+}
+
+# Stage 3 download
+stage_download() {
+    GENTOO_RELEASES_URL="https://mirror.dkm.cz/gentoo/releases"
+    STAGE3_PATH_URL="$GENTOO_RELEASES_URL/amd64/autobuilds/latest-stage3-amd64-openrc.txt"
+
+    if ! STAGE3_URL=$(curl -s "$STAGE3_PATH_URL" | grep -Eo '([0-9TZ]+/stage3-amd64-openrc-[0-9TZ]+\.tar\.xz)' | head -n1); then
+        log_error "Failed to get stage3 URL"
+        exit 1
+    fi
+
+    STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
+    STAGE3_FILENAME=$(basename $STAGE3_URL)
+
+    log_info "✓ Downloading: $STAGE3_FILENAME"
+
+    if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
+        log_error "Failed to download stage3 tarball"
+        exit 1
+    fi
+}
+
+# Extract stage3
+extract_stage() {
+    log_info "✓ Extracting stage3: $STAGE3_FILENAME"
+    if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
+        log_error "Failed to extract stage3 tarball"
+        exit 1
+    fi
+}
+
+# Input settings function
 input_settings() {
 
     # UEFI partition size input
@@ -652,6 +619,63 @@ input_settings() {
 
 }
 
+# Initialize clean log file
+echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
+trap 'handle_error $LINENO' ERR
+set -e
+trap cleanup EXIT
+
+# Installer header
+HEADER_TEXT=(
+    "               - F U G I S -               "
+    " Fast Universal Gentoo Installation Script "
+    "  Created by Lotrando (c) 2024-2025 v 1.8  "
+    "              TESTING version              "
+)
+
+HEADER_WIDTH=0
+for line in "${HEADER_TEXT[@]}"; do
+    [ ${#line} -gt $HEADER_WIDTH ] && HEADER_WIDTH=${#line}
+done
+HEADER_WIDTH=$((HEADER_WIDTH + 2))
+
+echo -e "${LIGHT_BLUE}╔$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╗${RESET}"
+for line in "${HEADER_TEXT[@]}"; do
+    printf "${LIGHT_BLUE}║ %-*s ║${RESET}\n" $((HEADER_WIDTH - 2)) "$line"
+done
+echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
+
+# Prerequisites check
+log_info "✓ Checks prerequisites for installation"
+
+# Check user must be root
+if [ "$(id -u)" -ne 0 ]; then
+    log_error "This script must be run as root!"
+    exit 1
+fi
+
+# Check if the script is run from a live environment
+if [ ! -d "/mnt/gentoo" ]; then
+    log_error "Must be run from a live environment!"
+    exit 1
+fi
+
+# Check required commands
+for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
+    if ! command -v "$cmd" &> /dev/null; then
+        log_error "Required command '$cmd' is not available"
+        exit 1
+    fi
+done
+
+# Check internet connectivity
+if ! ping -c 1 8.8.8.8 &> /dev/null; then
+    log_error "No internet connectivity detected"
+    exit 1
+fi
+
+log_info "✓ All prerequisites met"
+
 # Main input setting loop
 while true; do
     input_settings
@@ -706,40 +730,15 @@ fi
 echo ""
 log_info "✓ Starting installation process..."
 
-# DISK SETUP with error handling
-log_info "✓ Starting partitions setup"
-
+detect_gpu
+optimize_cpu_flags
+optimize_makeopts
 create_disk_partitions
+make_filesystems
 mount_filesystems
-
 cd /mnt/gentoo
-
-# Stage 3 download
-GENTOO_RELEASES_URL="https://mirror.dkm.cz/gentoo/releases"
-STAGE3_PATH_URL="$GENTOO_RELEASES_URL/amd64/autobuilds/latest-stage3-amd64-openrc.txt"
-
-if ! STAGE3_URL=$(curl -s "$STAGE3_PATH_URL" | grep -Eo '([0-9TZ]+/stage3-amd64-openrc-[0-9TZ]+\.tar\.xz)' | head -n1); then
-    log_error "Failed to get stage3 URL"
-    exit 1
-fi
-
-STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
-STAGE3_FILENAME=$(basename $STAGE3_URL)
-
-log_info "✓ Downloading: $STAGE3_FILENAME"
-
-if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
-    log_error "Failed to download stage3 tarball"
-    exit 1
-fi
-
-# Extract stage3
-log_info "✓ Extracting stage3: $STAGE3_FILENAME"
-
-if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
-    log_error "Failed to extract stage3 tarball"
-    exit 1
-fi
+stage_download
+extract_stage
 
 # Setup system
 mkdir -p /mnt/gentoo/var/db/repos/gentoo
@@ -751,7 +750,7 @@ if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/
     exit 1
 fi
 
-# Copy resol.conf DNS
+# Copy resol.conf
 if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
     log_error "Failed to copy resolv.conf"
     exit 1
@@ -774,16 +773,8 @@ test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
 
-detect_gpu
-optimize_cpu_flags
-optimize_makeopts
-
 # Create config file
-log_info "✓ Creating configuration for chroot"
-
-# Create improved chroot script
-log_info "✓ Creating chroot installation script"
-
+log_info "✓ Creating chroot configuration file"
 cat > /mnt/gentoo/tmp/chroot_config << EOF
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_GPU="$GENTOO_GPU"
@@ -812,6 +803,8 @@ TARGET_DISK="$TARGET_DISK"
 GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 EOF
 
+# Create improved chroot script
+log_info "✓ Chrooting a run chroot installation script"
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 #!/bin/bash
 
@@ -987,13 +980,10 @@ rm -f /root/gentoo-chroot.sh
 CHROOT_SCRIPT_END
 
 log_info "✓ Entering chroot and starting installation"
-
-# Starting chroot installation
 chmod +x /mnt/gentoo/root/gentoo-chroot.sh
 chroot /mnt/gentoo /root/gentoo-chroot.sh
 
 log_info "✓ Gentoo Linux installation completed successfully!"
-
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
 echo -e "${GREEN}║                    INSTALLATION COMPLETE !                     ║${RESET}"
@@ -1001,5 +991,5 @@ echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed
 echo -e "${GREEN}║         You can now reboot and enjoy your new system!          ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-echo -e "${GREEN}║                   sudo emerge -avUDu @world                    ║${RESET}"
+echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
