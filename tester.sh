@@ -339,6 +339,42 @@ extract_stage() {
 # Input settings function
 input_settings() {
 
+    # Installation type selection
+    echo ""
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Installation type:${RESET}"
+    echo ""
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (oure clear basic linux)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (LAMP/NGINX server)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Wayland desktop)${RESET}"
+
+    while true; do
+        echo ""
+        read -p "$(echo -e "${BLUE}Choose installation type (1-3):${RESET} ")" install_choice
+        case "$install_choice" in
+            1)
+                INSTALL_TYPE="classic"
+                INSTALL_TYPE_NAME="Gentoo Linux (minimal and fast)"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            2)
+                INSTALL_TYPE="webserver"
+                INSTALL_TYPE_NAME="Gentoo Linux as Webserver"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            3)
+                INSTALL_TYPE="hyprland"
+                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            *)
+                log_error "Invalid choice. Please try again."
+                ;;
+        esac
+    done
+
     # UEFI partition size input
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}UEFI partition size in MB:${RESET}"
@@ -683,6 +719,7 @@ while true; do
     echo ""
     echo -e "${LIGHT_GREEN}${UNDERLINE}Summary of your settings:${RESET}"
     echo ""
+    echo -e "${CYAN}Installation type:${RESET} ${INSTALL_TYPE_NAME}"
     echo -e "${CYAN}UEFI size:${RESET} ${UEFI_DISK_SIZE} MB"
     echo -e "${CYAN}Username:${RESET} ${GENTOO_USER}"
     echo -e "${CYAN}User password:${RESET} ${GENTOO_USER_PASSWORD}"
@@ -776,6 +813,7 @@ fi
 # Create config file
 log_info "✓ Creating chroot configuration file"
 cat > /mnt/gentoo/tmp/chroot_config << EOF
+INSTALL_TYPE="$INSTALL_TYPE"
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_GPU="$GENTOO_GPU"
 GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
@@ -847,11 +885,11 @@ rm -f make.conf
 rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
-wget -q "${GENTOO_INSTALLER_URL}/classic/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.mask"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.mask"
 
 log_info "✓ Configuring GPU"
 if [[ -n "$GENTOO_GPU" ]]; then
@@ -943,7 +981,7 @@ echo ""
 genkernel all
 echo ""
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo
+emerge f2fs-tools dosfstools grub terminus-font sudo btop app-misc/mc
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
@@ -967,12 +1005,41 @@ GRUB_BLOCK_END
 log_info "✓ Installing GRUB and create config file"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
 cd /boot/grub/
-wget -q "${GENTOO_INSTALLER_URL}/classic/grub.png"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
 grub-mkconfig -o /boot/grub/grub.cfg
+
+# Installation type specific packages and configuration
+if [[ "$INSTALL_TYPE" == "classic" ]]; then
+    log_info "✓ Installing additional packages"
+elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
+    log_info "✓ Installing additional Webserver packages and configs"
+    emerge phpmyadmin dev-db/mysql dev-lang/php
+    eselect php set cli php8.4 && eselect php set apache2 php8.4
+    rm -R /usr/lib/tmpfiles.d/mysql.conf
+    echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
+    sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
+    echo "ServerName localhost" >> /etc/apache2/httpd.conf
+    rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
+    cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+    mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
+    chown -R apache:apache /var/www/ && usermod -aG apache realist
+    chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
+    log_info "✓ Installing additional Hyprland desktop packages"
+    emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
+    eselect repository enable guru && emaint sync -r guru
+    eselect repository enable mv && emaint sync -r mv
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
+    emerge oh-my-zsh gentoo-zsh-completions zsh-completions
+    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    chsh -s /bin/zsh $GENTOO_USER
+fi
 
 log_info "✓ Installing user configuration files"
 cd /home/$GENTOO_USER/
-wget -q "${GENTOO_INSTALLER_URL}/classic/dotfiles.zip"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
 unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
