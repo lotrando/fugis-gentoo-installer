@@ -1038,12 +1038,12 @@ elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
-    # eselect repository enable mv && emaint sync -r mv
-    # emerge oh-my-zsh gentoo-zsh-completions zsh-completions
-    # git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
-    # git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
-    # git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-    # chsh -s /bin/zsh $GENTOO_USER
+    eselect repository enable r7l && emaint sync -r r7l
+    emerge oh-my-zsh gentoo-zsh-completions zsh-completions
+    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    chsh -s /bin/zsh $GENTOO_USER
     rc-update add elogind boot && rc-update add dbus default
 
     #emerge gui-apps/pavucontrol media-sound/playerctl gui-apps/wl-clipboard gui-apps/wofi xfce-base/thunar
