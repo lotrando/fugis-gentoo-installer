@@ -805,7 +805,7 @@ GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 EOF
 
 # Create improved chroot script
-log_info "✓ Chrooting a run chroot installation script"
+log_info "✓ Creating install script"
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 #!/bin/bash
 
@@ -854,18 +854,18 @@ wget -q "${GENTOO_INSTALLER_URL}/classic/package.use"
 wget -q "${GENTOO_INSTALLER_URL}/classic/package.license"
 wget -q "${GENTOO_INSTALLER_URL}/classic/package.mask"
 
-log_info "✓ Configuring GPU in make.conf"
+log_info "✓ Configuring GPU"
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
 else
     echo "VIDEO_CARDS=\"fbdev vesa\"" >> make.conf
 fi
-log_info "✓ Configuring CPU FLAGS in make.conf"
+log_info "✓ Configuring CPU FLAGS"
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
 log_info "✓ Configuring MAKEOPTS in make.conf"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
-log_info "✓ Make /etc/fstab"
+log_info "✓ Update /etc/fstab file"
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
@@ -879,13 +879,13 @@ else
     echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
 
-log_info "✓ Configuring [hostname, consolefont, hosts]"
+log_info "✓ Setting [hostname, consolefont, hosts]"
 sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
 sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
-log_info "✓ Configuring LAN"
+log_info "✓ Setting LAN"
 if [[ "$NET_MODE" == "dhcp" ]]; then
     cat > /etc/dhcpcd.conf << 'DHCP_BLOCK_END'
 # DHCP configuration
@@ -910,13 +910,13 @@ else
     echo "dns_${TARGET_LAN}=\"${TARGET_DNS}\"" >> /etc/conf.d/net
 fi
 
-log_info "✓ Configuring keymap"
+log_info "✓ Setting keymap"
 cat > /etc/conf.d/keymaps << 'KEYMAP_BLOCK_END'
 keymap="us"
 KEYMAP_BLOCK_END
 sed -i "s/us/$GENTOO_KEYMAP/g" /etc/conf.d/keymaps
 
-log_info "✓ Configuring locales"
+log_info "✓ Setting locales"
 cat > /etc/locale.gen << 'LOCALE_BLOCK_END'
 en_US.UTF-8 UTF-8
 LOCALE_BLOCK_END
@@ -927,7 +927,7 @@ LC_COLLATE="C"
 LOCALE_ENV_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/env.d/02locale
 
-log_info "✓ Timezone"
+log_info "✓ Setting timezone"
 locale-gen --quiet
 echo "$GENTOO_ZONEINFO" > /etc/timezone
 env-update >/dev/null 2>&1
@@ -935,12 +935,24 @@ source /etc/profile >/dev/null 2>&1
 
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
+echo ""
 log_info "✓ Installing firmware"
 emerge linux-firmware genkernel
+echo ""
 log_info "✓ Created the kernel
 genkernel all
+echo ""
 log_info "✓ Installing important packages"
 emerge f2fs-tools dosfstools grub terminus-font sudo
+
+log_info "✓ Create root password"
+echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
+log_info "✓ Create user $GENTOO_USER and his password"
+useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
+echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
+
+log_info "✓ Configuring SUDO for $GENTOO_USER"
+sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 log_info "✓ Configuring GRUB and setting resolution ${GRUB_GFX_MODE}"
 cat >> /etc/default/grub << GRUB_BLOCK_END
@@ -951,16 +963,6 @@ GRUB_DISABLE_OS_PROBER=true
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
-
-
-log_info "✓ Create root password"
-echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
-log_info "✓ Create user $GENTOO_USER and his password"
-useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
-echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
-
-log_info "✓ Configuring SUDO for $GENTOO_USER"
-sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 log_info "✓ Installing GRUB and create config file"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
@@ -982,7 +984,6 @@ log_info "✓ Removing chroot script"
 rm -f /root/gentoo-chroot.sh
 CHROOT_SCRIPT_END
 
-log_info "✓ Entering chroot and starting installation"
 chmod +x /mnt/gentoo/root/gentoo-chroot.sh
 chroot /mnt/gentoo /root/gentoo-chroot.sh
 
