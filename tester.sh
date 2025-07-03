@@ -939,7 +939,7 @@ echo ""
 log_info "✓ Installing firmware"
 emerge linux-firmware genkernel
 echo ""
-log_info "✓ Created the kernel
+log_info "✓ Created the kernel"
 genkernel all
 echo ""
 log_info "✓ Installing important packages"
