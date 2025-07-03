@@ -1013,7 +1013,7 @@ chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
 log_info "✓ Running services"
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add gpm default
 
 # Installation type specific packages and configuration
 if [[ "$INSTALL_TYPE" == "classic" ]]; then
@@ -1037,14 +1037,19 @@ elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
     log_info "✓ Installing additional Hyprland desktop packages"
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
-    eselect repository enable mv && emaint sync -r mv
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
+    eselect repository enable mv && emaint sync -r mv
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
     git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
     chsh -s /bin/zsh $GENTOO_USER
     rc-update add elogind boot && rc-update add dbus default
+
+    #emerge gui-apps/pavucontrol media-sound/playerctl gui-apps/wl-clipboard gui-apps/wofi xfce-base/thunar
+    #emerge gui-apps/swaylock gui-apps/swww gui-apps/mako app-misc/brightnessctl
+    #emerge gnome-extra/nm-applet net-misc/networkmanager net-wireless/blueman gnome-extra/polkit-gnome
+    #emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
 fi
 
 log_info "✓ Removing chroot script"
