@@ -720,12 +720,6 @@ while true; do
     fi
 done
 
-if [[ "$NET_MODE" == "static" ]]; then
-    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
-else
-    TARGET_CIDR="24"  # default for DHCP (not used but defined)
-fi
-
 # Installation starts here !!!
 echo ""
 log_info "✓ Starting installation process..."
@@ -772,6 +766,13 @@ mount --make-rslave /mnt/gentoo/run
 test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
+
+# CIDR
+if [[ "$NET_MODE" == "static" ]]; then
+    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
+else
+    TARGET_CIDR="24"  # default for DHCP (not used but defined)
+fi
 
 # Create config file
 log_info "✓ Creating chroot configuration file"
@@ -920,14 +921,13 @@ cat > /etc/locale.gen << 'LOCALE_BLOCK_END'
 en_US.UTF-8 UTF-8
 LOCALE_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/locale.gen
-
 cat > /etc/env.d/02locale << 'LOCALE_ENV_BLOCK_END'
 LANG="en_US.UTF-8"
 LC_COLLATE="C"
 LOCALE_ENV_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/env.d/02locale
 
-log_info "✓ Setting timezone"
+log_info "✓ Timezone"
 locale-gen --quiet
 echo "$GENTOO_ZONEINFO" > /etc/timezone
 env-update >/dev/null 2>&1
@@ -935,8 +935,10 @@ source /etc/profile >/dev/null 2>&1
 
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
-log_info "✓ Installing firmware a start generate kernel"
-emerge linux-firmware genkernel && genkernel all
+log_info "✓ Installing firmware"
+emerge linux-firmware genkernel
+log_info "✓ Created the kernel
+genkernel all
 log_info "✓ Installing important packages"
 emerge f2fs-tools dosfstools grub terminus-font sudo
 
@@ -950,6 +952,7 @@ GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
+
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
 log_info "✓ Create user $GENTOO_USER and his password"
@@ -960,10 +963,10 @@ log_info "✓ Configuring SUDO for $GENTOO_USER"
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 log_info "✓ Installing GRUB and create config file"
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
+grub-mkconfig -o /boot/grub/grub.cfg
 cd /boot/grub/
 wget -q "${GENTOO_INSTALLER_URL}/classic/grub.png"
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=HYPRLAND --recheck ${TARGET_DISK}
-grub-mkconfig -o /boot/grub/grub.cfg
 
 log_info "✓ Running services"
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
