@@ -35,7 +35,7 @@ chmod +x installer.sh && ./installer.sh
 - it will take some time to compile the kernel and packages
 - reboot and use new clear Gentoo linux
 
-<img src="screens/screen.png" alt="Screenshot of settings before instalation procedure" />
+<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
 ### Installation steps
 ```
@@ -94,7 +94,7 @@ chmod +x installer.sh && ./installer.sh
 ```
 ### Screen after installation
 
-<img src="screens/after_install.png" alt="Screenshot after instalation procedure" />
+<img src="after_install.png" alt="Screenshot after instalation procedure" />
 
 
 ### Positives of the Script
