@@ -11,20 +11,10 @@
 # ║                  Fast Universal Gentoo Installation Script                 ║
 # ║                   Created by Lotrando (c) 2024-2025 v 1.8                  ║
 # ║                                                                            ║
-# ║                              CLASSIC VERSION                               ║
+# ║                              TESTING VERSION                               ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
-# Fast Universal Gentoo Installation Script (c) debugging from 2024 - 2025 v 1.8
-# This script is designed to be run from live environment USB boot flashdisk key
-# It will install Gentoo Linux on specified target hard drive minimal packages
-
-# FUGIS installer home repo: https://github.com/lotrando/fugis-gentoo-installer
-# make custom fork and change GENTOO_INSTALLER_URL with URL to your fork
-
-export TERM=xterm-256color
-clear
-
-# Important variables
+# Variables
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
 GENTOO_LOG_FILE="/tmp/fugis.log"
 
@@ -45,15 +35,27 @@ LIGHT_CYAN='\033[1;36m'
 UNDERLINE='\033[4m'
 RESET='\033[0m'
 
-# Strip ANSI color codes function
+# Set default terminal type
+export TERM=xterm-256color
+
+# Clear the terminal
+clear
+
+# Strip ANSI color
 strip_colors() {
     sed 's/\x1b\[[0-9;]*m//g'
 }
 
-# Cleanup function
+# Umount partitions function
 cleanup() {
-    log_info "✓ Cleaning up..."
     umount -Rf /mnt/gentoo 2>/dev/null || true
+}
+
+# Error handling
+handle_error() {
+    log_error "Script failed at line $1"
+    cleanup
+    exit 1
 }
 
 # Logging functions info
@@ -77,20 +79,43 @@ log_warning() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "$GENTOO_LOG_FILE"
 }
 
-# Error handling
-handle_error() {
-    log_error "Script failed at line $1"
-    cleanup
-    exit 1
+# Detect CPU Cores
+optimize_makeopts() {
+    # Detect CPU makeopts
+    GENTOO_MAKEOPTS="-j$(nproc)"
+    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
 }
 
-# Initialize clean log file
-echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
-trap 'handle_error $LINENO' ERR
-set -e
-trap cleanup EXIT
+# Detect CPU Flags
+optimize_cpu_flags() {
+    # Detect CPU flags
+    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
+    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
+}
 
-## Input validations, detections, convertors functions
+# Detect GPU
+detect_gpu() {
+    # GPU specifické flagy
+    if lspci | grep -i nvidia &>/dev/null; then
+        GENTOO_GPU="nvidia"
+        log_info "✓ Detected NVIDIA GPU"
+    elif lspci | grep -i amd &>/dev/null; then
+        GENTOO_GPU="amdgpu radeonsi"
+        log_info "✓ Detected AMD GPU"
+    elif lspci | grep -i intel &>/dev/null; then
+        GENTOO_GPU="intel i965"
+        log_info "✓ Detected Intel GPU"
+    elif lspci | grep -i vmware &>/dev/null; then
+        GENTOO_GPU="vmware"
+        log_info "✓ Detected VMware virtual GPU"
+    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
+        GENTOO_GPU="virtualbox"
+        log_info "✓ Detected VirtualBox virtual GPU"
+    else
+        GENTOO_GPU="fbdev vesa"
+        log_info "✓ No specific GPU detected, using generic drivers"
+    fi
+}
 
 # Convert Netmask to CDIR
 netmask_to_cidr() {
@@ -132,7 +157,6 @@ validate_ip() {
     return 1
 }
 
-
 # Validation Hostname
 validate_hostname() {
     local hostname=$1
@@ -151,45 +175,6 @@ validate_username() {
     return 1
 }
 
-# Detect CPU Cores
-optimize_makeopts() {
-    # Detect CPU makeopts
-    GENTOO_MAKEOPTS="-j$(nproc)"
-    log_info "✓ Detect MAKEOPTS: $GENTOO_MAKEOPTS"
-}
-
-# Detect CPU Flags
-optimize_cpu_flags() {
-    # Detect CPU flags
-    GENTOO_CPUFLAGS=$(cpuid2cpuflags | sed 's/^CPU_FLAGS_X86: //')
-    log_info "✓ Detect CPU flags: $GENTOO_CPUFLAGS"
-}
-
-# Detect GPU
-detect_gpu() {
-    # GPU specifické flagy
-    if lspci | grep -i nvidia &>/dev/null; then
-        GENTOO_GPU="nvidia"
-        log_info "✓ Detected NVIDIA GPU"
-    elif lspci | grep -i amd &>/dev/null; then
-        GENTOO_GPU="amdgpu radeonsi"
-        log_info "✓ Detected AMD GPU"
-    elif lspci | grep -i intel &>/dev/null; then
-        GENTOO_GPU="intel i965"
-        log_info "✓ Detected Intel GPU"
-    elif lspci | grep -i vmware &>/dev/null; then
-        GENTOO_GPU="vmware"
-        log_info "✓ Detected VMware virtual GPU"
-    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
-        GENTOO_GPU="virtualbox"
-        log_info "✓ Detected VirtualBox virtual GPU"
-    else
-        GENTOO_GPU="fbdev vesa"
-        log_info "✓ No specific GPU detected, using generic drivers"
-    fi
-}
-
-## Partition functions
 # Configure SWAP partition
 configure_swap_partition() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
@@ -228,15 +213,15 @@ create_disk_partitions() {
     if [[ "$SWAP_TYPE" == "partition" ]]; then
         # UEFI, SWAP, ROOT
         if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
-unit mib
-mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-name 1 UEFI
-set 1 bios_grub on
-mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
-name 2 SWAP
-mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
-name 3 ROOT
-quit
+            unit mib
+            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+            name 1 UEFI
+            set 1 bios_grub on
+            mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
+            name 2 SWAP
+            mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
+            name 3 ROOT
+            quit
 PARTED_END
         then
             log_error "Failed to create partitions with swap"
@@ -254,13 +239,13 @@ PARTED_END
     else
         # Two partitions: UEFI, ROOT [no swap]
         if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
-unit mib
-mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-name 1 UEFI
-set 1 bios_grub on
-mkpart primary ${UEFI_DISK_SIZE} -1
-name 2 ROOT
-quit
+            unit mib
+            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+            name 1 UEFI
+            set 1 bios_grub on
+            mkpart primary ${UEFI_DISK_SIZE} -1
+            name 2 ROOT
+            quit
 PARTED_END
         then
             log_error "Failed to create partitions"
@@ -269,8 +254,10 @@ PARTED_END
 
         ROOT_PARTITION="${TARGET_PART}2"
     fi
+}
 
-    # Make filesystems
+# Make filesystems
+make_filesystems() {
     log_info "✓ Creating filesystems on UEFI and ROOT partitions"
 
     if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
@@ -319,59 +306,74 @@ mount_filesystems() {
     fi
 }
 
-## Installer header
-HEADER_TEXT=(
-    "               - F U G I S -               "
-    " Fast Universal Gentoo Installation Script "
-    "  Created by Lotrando (c) 2024-2025 v 1.8  "
-    "              Classic version              "
-)
+# Stage 3 download
+stage_download() {
+    GENTOO_RELEASES_URL="https://mirror.dkm.cz/gentoo/releases"
+    STAGE3_PATH_URL="$GENTOO_RELEASES_URL/amd64/autobuilds/latest-stage3-amd64-openrc.txt"
 
-HEADER_WIDTH=0
-for line in "${HEADER_TEXT[@]}"; do
-    [ ${#line} -gt $HEADER_WIDTH ] && HEADER_WIDTH=${#line}
-done
-HEADER_WIDTH=$((HEADER_WIDTH + 2))
-
-echo -e "${LIGHT_BLUE}╔$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╗${RESET}"
-for line in "${HEADER_TEXT[@]}"; do
-    printf "${LIGHT_BLUE}║ %-*s ║${RESET}\n" $((HEADER_WIDTH - 2)) "$line"
-done
-echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
-
-# Prerequisites check
-log_info "✓ Checks prerequisites for installation"
-
-# Check user must be root
-if [ "$(id -u)" -ne 0 ]; then
-    log_error "This script must be run as root!"
-    exit 1
-fi
-
-# Check if the script is run from a live environment
-if [ ! -d "/mnt/gentoo" ]; then
-    log_error "Must be run from a live environment!"
-    exit 1
-fi
-
-# Check required commands
-for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
-    if ! command -v "$cmd" &> /dev/null; then
-        log_error "Required command '$cmd' is not available"
+    if ! STAGE3_URL=$(curl -s "$STAGE3_PATH_URL" | grep -Eo '([0-9TZ]+/stage3-amd64-openrc-[0-9TZ]+\.tar\.xz)' | head -n1); then
+        log_error "Failed to get stage3 URL"
         exit 1
     fi
-done
 
-# Check internet connectivity
-if ! ping -c 1 8.8.8.8 &> /dev/null; then
-    log_error "No internet connectivity detected"
-    exit 1
-fi
+    STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
+    STAGE3_FILENAME=$(basename $STAGE3_URL)
 
-log_info "✓ All prerequisites met"
+    log_info "✓ Downloading: $STAGE3_FILENAME"
 
-## Input settings function
+    if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
+        log_error "Failed to download stage3 tarball"
+        exit 1
+    fi
+}
+
+# Extract stage3
+extract_stage() {
+    log_info "✓ Extracting stage3: $STAGE3_FILENAME"
+    if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
+        log_error "Failed to extract stage3 tarball"
+        exit 1
+    fi
+}
+
+# Input settings function
 input_settings() {
+
+    # Installation type selection
+    echo ""
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Installation type:${RESET}"
+    echo ""
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP/NGINX server)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo linux with Wayland desktop)${RESET}"
+
+    while true; do
+        echo ""
+        read -p "$(echo -e "${BLUE}Choose installation type (1-3):${RESET} ")" install_choice
+        case "$install_choice" in
+            1)
+                INSTALL_TYPE="classic"
+                INSTALL_TYPE_NAME="Gentoo Linux Classic"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            2)
+                INSTALL_TYPE="webserver"
+                INSTALL_TYPE_NAME="Gentoo Linux as Webserver"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            3)
+                INSTALL_TYPE="hyprland"
+                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            *)
+                log_error "Invalid choice. Please try again."
+                ;;
+        esac
+    done
 
     # UEFI partition size input
     echo ""
@@ -545,7 +547,6 @@ input_settings() {
     echo ""
 
     for i in "${!DISKS[@]}"; do
-        # Zobrazit dodatečné informace o disku
         disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
         echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
     done
@@ -653,6 +654,63 @@ input_settings() {
 
 }
 
+# Initialize clean log file
+echo "--- FUGIS Installation Log ---" > "$GENTOO_LOG_FILE"
+trap 'handle_error $LINENO' ERR
+set -e
+trap cleanup EXIT
+
+# Installer header
+HEADER_TEXT=(
+    "               - F U G I S -               "
+    " Fast Universal Gentoo Installation Script "
+    "  Created by Lotrando (c) 2024-2025 v 1.8  "
+    "              TESTING version              "
+)
+
+HEADER_WIDTH=0
+for line in "${HEADER_TEXT[@]}"; do
+    [ ${#line} -gt $HEADER_WIDTH ] && HEADER_WIDTH=${#line}
+done
+HEADER_WIDTH=$((HEADER_WIDTH + 2))
+
+echo -e "${LIGHT_BLUE}╔$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╗${RESET}"
+for line in "${HEADER_TEXT[@]}"; do
+    printf "${LIGHT_BLUE}║ %-*s ║${RESET}\n" $((HEADER_WIDTH - 2)) "$line"
+done
+echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
+
+# Prerequisites check
+log_info "✓ Checks prerequisites for installation"
+
+# Check user must be root
+if [ "$(id -u)" -ne 0 ]; then
+    log_error "This script must be run as root!"
+    exit 1
+fi
+
+# Check if the script is run from a live environment
+if [ ! -d "/mnt/gentoo" ]; then
+    log_error "Must be run from a live environment!"
+    exit 1
+fi
+
+# Check required commands
+for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
+    if ! command -v "$cmd" &> /dev/null; then
+        log_error "Required command '$cmd' is not available"
+        exit 1
+    fi
+done
+
+# Check internet connectivity
+if ! ping -c 1 8.8.8.8 &> /dev/null; then
+    log_error "No internet connectivity detected"
+    exit 1
+fi
+
+log_info "✓ All prerequisites met"
+
 # Main input setting loop
 while true; do
     input_settings
@@ -661,6 +719,7 @@ while true; do
     echo ""
     echo -e "${LIGHT_GREEN}${UNDERLINE}Summary of your settings:${RESET}"
     echo ""
+    echo -e "${CYAN}Installation type:${RESET} ${INSTALL_TYPE_NAME}"
     echo -e "${CYAN}UEFI size:${RESET} ${UEFI_DISK_SIZE} MB"
     echo -e "${CYAN}Username:${RESET} ${GENTOO_USER}"
     echo -e "${CYAN}User password:${RESET} ${GENTOO_USER_PASSWORD}"
@@ -697,50 +756,19 @@ while true; do
     fi
 done
 
-if [[ "$NET_MODE" == "static" ]]; then
-    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
-else
-    TARGET_CIDR="24"  # default for DHCP (not used but defined)
-fi
-
 # Installation starts here !!!
 echo ""
 log_info "✓ Starting installation process..."
 
-# DISK SETUP with error handling
-log_info "✓ Starting partitions setup"
-
+detect_gpu
+optimize_cpu_flags
+optimize_makeopts
 create_disk_partitions
+make_filesystems
 mount_filesystems
-
 cd /mnt/gentoo
-
-# Stage 3 download
-GENTOO_RELEASES_URL="https://mirror.dkm.cz/gentoo/releases"
-STAGE3_PATH_URL="$GENTOO_RELEASES_URL/amd64/autobuilds/latest-stage3-amd64-openrc.txt"
-
-if ! STAGE3_URL=$(curl -s "$STAGE3_PATH_URL" | grep -Eo '([0-9TZ]+/stage3-amd64-openrc-[0-9TZ]+\.tar\.xz)' | head -n1); then
-    log_error "Failed to get stage3 URL"
-    exit 1
-fi
-
-STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
-STAGE3_FILENAME=$(basename $STAGE3_URL)
-
-log_info "✓ Downloading: $STAGE3_FILENAME"
-
-if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
-    log_error "Failed to download stage3 tarball"
-    exit 1
-fi
-
-# Extract stage3
-log_info "✓ Extracting stage3: $STAGE3_FILENAME"
-
-if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
-    log_error "Failed to extract stage3 tarball"
-    exit 1
-fi
+stage_download
+extract_stage
 
 # Setup system
 mkdir -p /mnt/gentoo/var/db/repos/gentoo
@@ -752,7 +780,7 @@ if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/
     exit 1
 fi
 
-# Copy resol.conf DNS
+# Copy resol.conf
 if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
     log_error "Failed to copy resolv.conf"
     exit 1
@@ -775,17 +803,17 @@ test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
 
-detect_gpu
-optimize_cpu_flags
-optimize_makeopts
+# CIDR
+if [[ "$NET_MODE" == "static" ]]; then
+    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
+else
+    TARGET_CIDR="24"  # default for DHCP (not used but defined)
+fi
 
 # Create config file
-log_info "✓ Creating configuration for chroot"
-
-# Create improved chroot script
-log_info "✓ Creating chroot installation script"
-
+log_info "✓ Creating chroot configuration file"
 cat > /mnt/gentoo/tmp/chroot_config << EOF
+INSTALL_TYPE="$INSTALL_TYPE"
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_GPU="$GENTOO_GPU"
 GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
@@ -813,6 +841,8 @@ TARGET_DISK="$TARGET_DISK"
 GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 EOF
 
+# Create improved chroot script
+log_info "✓ Creating install script"
 cat > /mnt/gentoo/root/gentoo-chroot.sh << 'CHROOT_SCRIPT_END'
 #!/bin/bash
 
@@ -855,24 +885,24 @@ rm -f make.conf
 rm -rf package.use
 rm -rf package.accept_keywords
 rm -rf package.mask
-wget -q "${GENTOO_INSTALLER_URL}/classic/make.conf"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.accept_keywords"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.use"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.license"
-wget -q "${GENTOO_INSTALLER_URL}/classic/package.mask"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/make.conf"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.accept_keywords"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.use"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.license"
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/package.mask"
 
-log_info "✓ Configuring GPU in make.conf"
+log_info "✓ Configuring GPU"
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
 else
     echo "VIDEO_CARDS=\"fbdev vesa\"" >> make.conf
 fi
-log_info "✓ Configuring CPU FLAGS in make.conf"
+log_info "✓ Configuring CPU FLAGS"
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
 log_info "✓ Configuring MAKEOPTS in make.conf"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
-log_info "✓ Make /etc/fstab"
+log_info "✓ Update /etc/fstab file"
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
@@ -886,13 +916,13 @@ else
     echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
 
-log_info "✓ Configuring [hostname, consolefont, hosts]"
+log_info "✓ Setting [hostname, consolefont, hosts]"
 sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
 sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
-log_info "✓ Configuring LAN"
+log_info "✓ Setting LAN"
 if [[ "$NET_MODE" == "dhcp" ]]; then
     cat > /etc/dhcpcd.conf << 'DHCP_BLOCK_END'
 # DHCP configuration
@@ -917,18 +947,17 @@ else
     echo "dns_${TARGET_LAN}=\"${TARGET_DNS}\"" >> /etc/conf.d/net
 fi
 
-log_info "✓ Configuring keymap"
+log_info "✓ Setting keymap"
 cat > /etc/conf.d/keymaps << 'KEYMAP_BLOCK_END'
 keymap="us"
 KEYMAP_BLOCK_END
 sed -i "s/us/$GENTOO_KEYMAP/g" /etc/conf.d/keymaps
 
-log_info "✓ Configuring locales"
+log_info "✓ Setting locales"
 cat > /etc/locale.gen << 'LOCALE_BLOCK_END'
 en_US.UTF-8 UTF-8
 LOCALE_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/locale.gen
-
 cat > /etc/env.d/02locale << 'LOCALE_ENV_BLOCK_END'
 LANG="en_US.UTF-8"
 LC_COLLATE="C"
@@ -943,10 +972,25 @@ source /etc/profile >/dev/null 2>&1
 
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
-log_info "✓ Installing firmware a start generate kernel"
-emerge linux-firmware genkernel && genkernel all
+echo ""
+log_info "✓ Installing firmware"
+emerge linux-firmware genkernel
+echo ""
+log_info "✓ Starting generate kernel"
+echo ""
+genkernel all
+echo ""
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo
+emerge f2fs-tools dosfstools grub terminus-font sudo btop app-misc/mc
+
+log_info "✓ Create root password"
+echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
+log_info "✓ Create user $GENTOO_USER and his password"
+useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
+echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
+
+log_info "✓ Configuring SUDO for $GENTOO_USER"
+sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 log_info "✓ Configuring GRUB and setting resolution ${GRUB_GFX_MODE}"
 cat >> /etc/default/grub << GRUB_BLOCK_END
@@ -958,43 +1002,62 @@ GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
-log_info "✓ Create root password"
-echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
-log_info "✓ Create user $GENTOO_USER and his password"
-useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
-echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
-
-log_info "✓ Configuring SUDO for $GENTOO_USER"
-sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
-
 log_info "✓ Installing GRUB and create config file"
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
 cd /boot/grub/
-wget -q "${GENTOO_INSTALLER_URL}/classic/grub.png"
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=HYPRLAND --recheck ${TARGET_DISK}
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
 grub-mkconfig -o /boot/grub/grub.cfg
+
+log_info "✓ Installing user configuration files"
+cd /home/$GENTOO_USER/
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
+unzip -qo dotfiles.zip
+chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
+rm -f dotfiles.zip
 
 log_info "✓ Running services"
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
-log_info "✓ Installing user configuration files"
-cd /home/$GENTOO_USER/
-wget -q "${GENTOO_INSTALLER_URL}/classic/dotfiles.zip"
-unzip -qo dotfiles.zip
-chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
-rm -f dotfiles.zip
+# Installation type specific packages and configuration
+if [[ "$INSTALL_TYPE" == "classic" ]]; then
+    log_info "✓ Installing additional packages"
+elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
+    log_info "✓ Installing additional Webserver packages and configs"
+    emerge phpmyadmin dev-db/mysql dev-lang/php
+    eselect php set cli php8.4 && eselect php set apache2 php8.4
+    rm -R /usr/lib/tmpfiles.d/mysql.conf
+    echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
+    sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
+    echo "ServerName localhost" >> /etc/apache2/httpd.conf
+    rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
+    cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+    mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
+    chown -R apache:apache /var/www/ && usermod -aG apache realist
+    chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+    emerge --config mysql
+    rc-update add apache2 default && rc-update add mysql default
+elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
+    log_info "✓ Installing additional Hyprland desktop packages"
+    emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
+    eselect repository enable guru && emaint sync -r guru
+    eselect repository enable mv && emaint sync -r mv
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
+    emerge oh-my-zsh gentoo-zsh-completions zsh-completions
+    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    chsh -s /bin/zsh $GENTOO_USER
+    rc-update add elogind boot && rc-update add dbus default
+fi
 
 log_info "✓ Removing chroot script"
 rm -f /root/gentoo-chroot.sh
 CHROOT_SCRIPT_END
 
-log_info "✓ Entering chroot and starting installation"
-
-# Starting chroot installation
 chmod +x /mnt/gentoo/root/gentoo-chroot.sh
 chroot /mnt/gentoo /root/gentoo-chroot.sh
 
 log_info "✓ Gentoo Linux installation completed successfully!"
-
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${RESET}"
 echo -e "${GREEN}║                    INSTALLATION COMPLETE !                     ║${RESET}"
@@ -1002,5 +1065,5 @@ echo -e "${GREEN}║    Your Gentoo Linux system has been successfully installed
 echo -e "${GREEN}║         You can now reboot and enjoy your new system!          ║${RESET}"
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
-echo -e "${GREEN}║                   sudo emerge -avUDu @world                    ║${RESET}"
+echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
