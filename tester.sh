@@ -48,7 +48,6 @@ strip_colors() {
 
 # Umount partitions function
 cleanup() {
-    log_info "✓ Umount /mnt/gentoo ..."
     umount -Rf /mnt/gentoo 2>/dev/null || true
 }
 
@@ -967,12 +966,9 @@ GRUB_BLOCK_END
 
 log_info "✓ Installing GRUB and create config file"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GENTOO --recheck ${TARGET_DISK}
-grub-mkconfig -o /boot/grub/grub.cfg
 cd /boot/grub/
 wget -q "${GENTOO_INSTALLER_URL}/classic/grub.png"
-
-log_info "✓ Running services"
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
+grub-mkconfig -o /boot/grub/grub.cfg
 
 log_info "✓ Installing user configuration files"
 cd /home/$GENTOO_USER/
@@ -980,6 +976,9 @@ wget -q "${GENTOO_INSTALLER_URL}/classic/dotfiles.zip"
 unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
+
+log_info "✓ Running services"
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
 log_info "✓ Removing chroot script"
 rm -f /root/gentoo-chroot.sh
