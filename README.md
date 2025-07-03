@@ -78,6 +78,14 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Installing additional packages and configs
 [INFO] ✓ Removing chroot script
 [INFO] ✓ Gentoo Linux installation completed successfully!
+╔════════════════════════════════════════════════════════════════╗
+║                    INSTALLATION COMPLETE !                     ║
+║    Your Gentoo Linux system has been successfully installed    ║
+║         You can now reboot and enjoy your new system!          ║
+║    After reboot for update packages from stage3 run command    ║
+╠════════════════════════════════════════════════════════════════╣
+║                  sudo emerge -avNUDu @world                    ║
+╚════════════════════════════════════════════════════════════════╝
 ```
 ### Screen after installation
 
