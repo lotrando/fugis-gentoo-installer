@@ -69,8 +69,8 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Starting generate kernel
 [INFO] ✓ Installing important packages
 [INFO] ✓ Create root password
-[INFO] ✓ Create user realist and his password
-[INFO] ✓ Configuring SUDO for realist
+[INFO] ✓ Create user lotrando and his password
+[INFO] ✓ Configuring SUDO for lotrando
 [INFO] ✓ Configuring GRUB and setting resolution 1920x1080x32
 [INFO] ✓ Installing GRUB and create config file
 [INFO] ✓ Installing user configuration files
