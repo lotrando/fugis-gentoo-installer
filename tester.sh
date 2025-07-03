@@ -343,9 +343,9 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Installation type:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (oure clear basic linux)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (LAMP/NGINX server)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Wayland desktop)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP/NGINX server)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo linux with Wayland desktop)${RESET}"
 
     while true; do
         echo ""
@@ -353,7 +353,7 @@ input_settings() {
         case "$install_choice" in
             1)
                 INSTALL_TYPE="classic"
-                INSTALL_TYPE_NAME="Gentoo Linux (minimal and fast)"
+                INSTALL_TYPE_NAME="Gentoo Linux Classic"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
@@ -1008,6 +1008,16 @@ cd /boot/grub/
 wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
 grub-mkconfig -o /boot/grub/grub.cfg
 
+log_info "✓ Installing user configuration files"
+cd /home/$GENTOO_USER/
+wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
+unzip -qo dotfiles.zip
+chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
+rm -f dotfiles.zip
+
+log_info "✓ Running services"
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
+
 # Installation type specific packages and configuration
 if [[ "$INSTALL_TYPE" == "classic" ]]; then
     log_info "✓ Installing additional packages"
@@ -1024,6 +1034,8 @@ elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
     mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
     chown -R apache:apache /var/www/ && usermod -aG apache realist
     chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+    emerge --config mysql
+    rc-update add apache2 default && rc-update add mysql default
 elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
     log_info "✓ Installing additional Hyprland desktop packages"
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
@@ -1035,17 +1047,8 @@ elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
     git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
     chsh -s /bin/zsh $GENTOO_USER
+    rc-update add elogind boot && rc-update add dbus default
 fi
-
-log_info "✓ Installing user configuration files"
-cd /home/$GENTOO_USER/
-wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
-unzip -qo dotfiles.zip
-chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
-rm -f dotfiles.zip
-
-log_info "✓ Running services"
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
 log_info "✓ Removing chroot script"
 rm -f /root/gentoo-chroot.sh
