@@ -65,9 +65,13 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Setting locales
 [INFO] ✓ Setting timezone
 [INFO] ✓ Installing kernel packages
+... emerge log oputput
 [INFO] ✓ Installing firmware
+... emerge log oputput
 [INFO] ✓ Starting generate kernel
+... genkernel log oputput
 [INFO] ✓ Installing important packages
+... emerge log oputput
 [INFO] ✓ Create root password
 [INFO] ✓ Create user lotrando and his password
 [INFO] ✓ Configuring SUDO for lotrando
@@ -76,6 +80,7 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Installing user configuration files
 [INFO] ✓ Running services
 [INFO] ✓ Installing additional packages and configs
+... emerge log oputput
 [INFO] ✓ Removing chroot script
 [INFO] ✓ Gentoo Linux installation completed successfully!
 ╔════════════════════════════════════════════════════════════════╗
