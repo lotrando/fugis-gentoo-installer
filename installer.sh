@@ -941,8 +941,8 @@ FSTAB_BLOCK_END
 echo "${TARGET_PART}1   /boot   vfat    noatime      0 0" >> /etc/fstab
 
 if [[ "$SWAP_TYPE" == "partition" ]]; then
-    echo "${TARGET_PART}3   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
     echo "${TARGET_PART}2   none    swap    sw      0 0" >> /etc/fstab
+    echo "${TARGET_PART}3   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 else
     echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
