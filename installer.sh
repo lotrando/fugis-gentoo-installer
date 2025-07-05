@@ -228,7 +228,7 @@ create_disk_partitions() {
             mkpart primary linux-swap $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) \
             name 3 SWAP \
             mkpart primary $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) -1 \
-            name 4 ROOT \
+            name 4 ROOT
 
         log_info "✓ Creating swap partition"
         if ! mkswap -L SWAP "${TARGET_DISK}${PART_PREFIX}3"; then
@@ -249,7 +249,7 @@ create_disk_partitions() {
             mkpart primary ext4 ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) \
             name 2 BOOT \
             mkpart primary $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) -1 \
-            name 3 ROOT \
+            name 3 ROOT
 
         ROOT_PARTITION="${TARGET_DISK}${PART_PREFIX}3"
     fi
