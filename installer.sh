@@ -455,20 +455,6 @@ input_settings() {
         fi
     done
 
-     # ROOT partition size input
-    echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}ROOT partition size in MB:${RESET}"
-    echo ""
-    while true; do
-        read -p "Enter ROOT partition size [$(echo -e "${GREEN}${ROOT_DISK_SIZE:-20000}${RESET}")]: " input
-        ROOT_DISK_SIZE=${input:-${ROOT_DISK_SIZE:-20000}}
-        if [[ "$ROOT_DISK_SIZE" =~ ^[0-9]+$ ]] && [ "$ROOT_DISK_SIZE" -ge 20000 ]; then
-            break
-        else
-            log_error "ROOT partition size must be >= 20 000 MB"
-        fi
-    done
-
     # SWAP configuration input
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}SWAP config:${RESET}"
