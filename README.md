@@ -1,8 +1,8 @@
 # FUGIS
----
 ### Fast Universal Gentoo Installation Script
  is a tweaked bash script that quickly install Gentoo Linux onto your hard drive.
 
+---
 ### How to use this script ?
 - download minimal installation ISO from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
 - create bootable USB stick with this ISO
@@ -39,6 +39,18 @@ chmod +x installer.sh && ./installer.sh
 
 ### Installation steps
 ```
+╔═════════════════════════════════════════════╗
+║                - F U G I S -                ║
+║  Fast Universal Gentoo Installation Script  ║
+║   Created by Lotrando (c) 2024-2025 v 1.8   ║
+╚═════════════════════════════════════════════╝
+[INFO] ✓ User have root privileges
+[INFO] ✓ Script is running in live environment
+[INFO] ✓ All required commands are available
+[INFO] ✓ Internet connectivity detected online
+```
+[ ... user inputs ... ]
+```
 [INFO] ✓ Starting installation process...
 [INFO] ✓ Detected Intel GPU
 [INFO] ✓ Detect CPU flags
@@ -65,13 +77,21 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Setting locales
 [INFO] ✓ Setting timezone
 [INFO] ✓ Installing kernel packages
-... emerge log oputput
+```
+[ ... emerge log oputput ... ]
+```
 [INFO] ✓ Installing firmware
-... emerge log oputput
+```
+[ ... emerge log oputput ... ]
+```
 [INFO] ✓ Starting generate kernel
-... genkernel log oputput
+```
+[ ... genkernel log oputput ... ]
+```
 [INFO] ✓ Installing important packages
-... emerge log oputput
+```
+[ ... emerge log oputput ... ]
+```
 [INFO] ✓ Create root password
 [INFO] ✓ Create user lotrando and his password
 [INFO] ✓ Configuring SUDO for lotrando
@@ -80,7 +100,9 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Installing user configuration files
 [INFO] ✓ Running services
 [INFO] ✓ Installing additional packages and configs
-... emerge log oputput
+```
+[ ... emerge log oputput ... ]
+```
 [INFO] ✓ Removing chroot script
 [INFO] ✓ Gentoo Linux installation completed successfully!
 ╔════════════════════════════════════════════════════════════════╗
@@ -99,7 +121,7 @@ chmod +x installer.sh && ./installer.sh
 
 ### Positives of the Script
 - **Installation type:**
-possibility to choose installation type, Classic clear Gentoo linux or Gentoo Linux as Webserver and finally as Hyprland Desktop.
+possibility to choose installation type, 1.Clear Gentoo linux or 2.Gentoo Linux as Webserver, 3.Gentoo Linux as Hyprland desktop and finally 4.Gentoo Linux as Hyprland Desktop for Webdevelopment.
 
 - **Interactive Setup:**
   Guides the user step-by-step through all key installation choices (disk, user, network, kernel, locale, etc.), making it very beginner-friendly.
@@ -114,7 +136,7 @@ possibility to choose installation type, Classic clear Gentoo linux or Gentoo Li
   Handles partitioning, filesystem creation, Stage3 downloading, network and locale setup, and more, minimizing manual intervention.
 
 - **Comprehensive Configuration:**
-  Sets up kernel sources, users, sudo privileges, GRUB bootloader, and essential services—all in one script.
+  Sets up kernel sources, users, sudo privileges, GRUB bootloader, and essential services - all in one script.
 
 - **Logging:**
   Logs all installation actions into a file for troubleshooting and review.
