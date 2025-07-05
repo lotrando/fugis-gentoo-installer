@@ -342,9 +342,9 @@ input_settings() {
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Installation type:${RESET}"
     echo ""
     echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP/NGINX server)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP server)${RESET}"
     echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo linux with Wayland desktop)${RESET}"
-    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo linux with my settings)${RESET}"
+    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo linux with Wayland desktop, LAMP server and develop packages)${RESET}"
 
     while true; do
         echo ""
