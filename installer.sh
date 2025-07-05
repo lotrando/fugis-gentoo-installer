@@ -343,8 +343,8 @@ input_settings() {
     echo ""
     echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP server)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo linux with Wayland desktop)${RESET}"
-    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo linux with Wayland desktop, LAMP server and develop packages)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo Linux as Hyprland Desktop)${RESET}"
+    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo Linux as Hyprland Desktop, LAMP server and Develop packages)${RESET}"
 
     while true; do
         echo ""
@@ -358,7 +358,7 @@ input_settings() {
                 ;;
             2)
                 INSTALL_TYPE="webserver"
-                INSTALL_TYPE_NAME="Gentoo Linux as Webserver"
+                INSTALL_TYPE_NAME="Gentoo linux as LAMP server"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
@@ -370,7 +370,7 @@ input_settings() {
                 ;;
             4)
                 INSTALL_TYPE="webdevelop"
-                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop for Web Development"
+                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop, LAMP server and Develop packages"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
