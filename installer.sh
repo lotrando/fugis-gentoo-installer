@@ -227,10 +227,8 @@ create_disk_partitions() {
             name 2 BOOT \
             mkpart primary linux-swap $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) \
             name 3 SWAP \
-            mkpart primary ext4 $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE + ROOT_DISK_SIZE)) \
+            mkpart primary $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) -1 \
             name 4 ROOT \
-            mkpart primary ext4 $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE + ROOT_DISK_SIZE)) 100% \
-            name 5 HOME
 
         log_info "✓ Creating swap partition"
         if ! mkswap -L SWAP "${TARGET_DISK}${PART_PREFIX}3"; then
@@ -250,10 +248,8 @@ create_disk_partitions() {
             set 1 esp on \
             mkpart primary ext4 ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) \
             name 2 BOOT \
-            mkpart primary ext4 $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + ROOT_DISK_SIZE)) \
+            mkpart primary $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) -1 \
             name 3 ROOT \
-            mkpart primary ext4 $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + ROOT_DISK_SIZE)) 100% \
-            name 4 HOME
 
         ROOT_PARTITION="${TARGET_DISK}${PART_PREFIX}3"
     fi
@@ -261,15 +257,20 @@ create_disk_partitions() {
 
 # Make filesystems
 make_filesystems() {
-    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
+    log_info "✓ Creating filesystems on UEFI, BOOT and ROOT partitions"
 
     if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
         log_error "Failed to create UEFI filesystem"
         exit 1
     fi
 
+    if ! mkfs.ext4 -l BOOT  ${TARGET_PART}2 &>/dev/null; then
+        log_error "Failed to create BOOT filesystem"
+        exit 1
+    fi
+
     if ! mkfs.f2fs -l ROOT -O extra_attr,inode_checksum,sb_checksum,compression -f ${ROOT_PARTITION} &>/dev/null; then
-        log_error "Failed to create root filesystem"
+        log_error "Failed to create ROOT filesystem"
         exit 1
     fi
 }
@@ -297,8 +298,18 @@ mount_filesystems() {
         exit 1
     fi
 
-    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
+    if ! mount ${TARGET_PART}2 /mnt/gentoo/boot; then
         log_error "Failed to mount boot partition"
+        exit 1
+    fi
+
+    if ! mkdir -p /mnt/gentoo/boot/EFI; then
+        log_error "Failed to create EFI directory"
+        exit 1
+    fi
+
+    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot/EFI; then
+        log_error "Failed to mount EFI partition"
         exit 1
     fi
 
@@ -761,8 +772,6 @@ while true; do
     echo -e "${CYAN}Installation type:${RESET} ${INSTALL_TYPE_NAME}"
     echo -e "${CYAN}UEFI size:${RESET} ${UEFI_DISK_SIZE} MB"
     echo -e "${CYAN}BOOT size:${RESET} ${BOOT_DISK_SIZE} MB"
-    echo -e "${CYAN}ROOT size:${RESET} ${ROOT_DISK_SIZE} MB"
-    echo -e "${CYAN}HOME size:${RESET} ${HOME_DISK_SIZE} MB"
     echo -e "${CYAN}Username:${RESET} ${GENTOO_USER}"
     echo -e "${CYAN}User password:${RESET} ${GENTOO_USER_PASSWORD}"
     echo -e "${CYAN}Root password:${RESET} ${GENTOO_ROOT_PASSWORD}"
