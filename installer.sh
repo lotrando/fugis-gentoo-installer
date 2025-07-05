@@ -47,14 +47,16 @@ strip_colors() {
 # Umount partitions function
 cleanup() {
     # Deactivate swap if active
-    [[ "$SWAP_TYPE" == "partition" ]] && swapoff ${TARGET_PART}2 2>/dev/null || true
+    if [[ "$SWAP_TYPE" == "partition" && -n "$TARGET_PART" ]]; then
+        swapoff ${TARGET_PART}2 2>/dev/null || true
+    fi
 
-    # Unmount in reverse order
-    umount -f /mnt/gentoo/boot 2>/dev/null || true
+    # Unmount filesystems in reverse order
     umount -f /mnt/gentoo/run 2>/dev/null || true
     umount -f /mnt/gentoo/dev 2>/dev/null || true
     umount -f /mnt/gentoo/sys 2>/dev/null || true
     umount -f /mnt/gentoo/proc 2>/dev/null || true
+    umount -f /mnt/gentoo/boot 2>/dev/null || true
     umount -f /mnt/gentoo 2>/dev/null || true
 }
 
@@ -335,6 +337,8 @@ stage_download() {
     STAGE3_DOWNLOAD_URL="${GENTOO_RELEASES_URL}/amd64/autobuilds/${STAGE3_URL}"
     STAGE3_FILENAME=$(basename $STAGE3_URL)
 
+    cd /mnt/gentoo
+
     log_info "✓ Downloading: $STAGE3_FILENAME"
 
     if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
@@ -352,7 +356,44 @@ extract_stage() {
     fi
 }
 
-# Input settings function
+# Setup system
+setup_system() {
+    mkdir -p /mnt/gentoo/var/db/repos/gentoo
+    mkdir -p /mnt/gentoo/etc/portage/repos.conf
+
+    # Copy repos.conf
+    log_info "✓ Copying repos.conf"
+    if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/; then
+        log_error "Failed to copy repos.conf"
+        exit 1
+    fi
+
+    # Copy resol.conf
+    log_info "✓ Copying resolv.conf"
+    if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
+        log_error "Failed to copy resolv.conf"
+        exit 1
+    fi
+
+    # Remove downloaded tarball
+    log_info "✓ Cleaning up downloaded tarball"
+    rm "$STAGE3_FILENAME"
+
+    log_info "✓ Mounting [proc, sys, dev, run] filesystems"
+    mount -t proc none /mnt/gentoo/proc
+    mount -t sysfs none /mnt/gentoo/sys
+    mount --rbind /sys /mnt/gentoo/sys
+    mount --make-rslave /mnt/gentoo/sys
+    mount --rbind /dev /mnt/gentoo/dev
+    mount --make-rslave /mnt/gentoo/dev
+    mount --rbind /run /mnt/gentoo/run
+    mount --make-rslave /mnt/gentoo/run
+    test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
+    mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
+    chmod 1777 /dev/shm
+}
+
+# Main input settings function
 input_settings() {
 
     # Installation type selection
@@ -641,11 +682,9 @@ input_settings() {
             TARGET_CIDR="24"  # default for DHCP (not used but defined)
             break
         elif [[ "$net_cfg" == "2" ]]; then
-            NET_MODE="static"
-            TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
-            echo -e "You selected: ${GREEN}Static IP${RESET}"
+    NET_MODE="static"
+    echo -e "You selected: ${GREEN}Static IP${RESET}"
 
-            # Static IP validation
             while true; do
                 read -p "$(echo -e "${BLUE}Enter static IP address [${TARGET_IP:-192.168.0.20}]:${RESET} ")" input
                 TARGET_IP=${input:-${TARGET_IP:-192.168.0.20}}
@@ -660,6 +699,7 @@ input_settings() {
                 read -p "$(echo -e "${BLUE}Enter netmask [${TARGET_MASK:-255.255.255.0}]:${RESET} ")" input
                 TARGET_MASK=${input:-${TARGET_MASK:-255.255.255.0}}
                 if validate_ip "$TARGET_MASK"; then
+                    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")  # Teď až zde!
                     break
                 else
                     log_error "Invalid netmask format"
@@ -717,7 +757,6 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-
 # Check if the script is run from a live environment
 log_info "✓ Script is running in live environment"
 if [ ! -d "/mnt/gentoo" ]; then
@@ -745,12 +784,17 @@ fi
 while true; do
     input_settings
 
-    # Summary and confirmation
+    # Summary and confirmation if everything is set
     echo ""
     echo -e "${LIGHT_GREEN}${UNDERLINE}Summary of your settings:${RESET}"
     echo ""
     echo -e "${CYAN}Installation type:${RESET} ${INSTALL_TYPE_NAME}"
-    echo -e "${CYAN}UEFI size:${RESET} ${UEFI_DISK_SIZE} MB"
+    echo -e "${CYAN}Target disk:${RESET} ${TARGET_DISK}"
+    echo -e "${CYAN}Disk type:${RESET} ${DISK_TYPE}"
+    echo -e "${CYAN}Detected GPU:${RESET} ${GENTOO_GPU}"
+    echo -e "${CYAN}CPU Optimization:${RESET} ${GENTOO_MAKEOPTS}"
+    echo -e "${CYAN}UEFI/BOOT size:${RESET} ${UEFI_DISK_SIZE} MB"
+    echo -e "${CYAN}Locale:${RESET} ${GENTOO_LOCALE}"
     echo -e "${CYAN}Username:${RESET} ${GENTOO_USER}"
     echo -e "${CYAN}User password:${RESET} ${GENTOO_USER_PASSWORD}"
     echo -e "${CYAN}Root password:${RESET} ${GENTOO_ROOT_PASSWORD}"
@@ -760,7 +804,6 @@ while true; do
     echo -e "${CYAN}GRUB Resolution:${RESET} ${GRUB_GFX_MODE}"
     echo -e "${CYAN}Timezone:${RESET} ${GENTOO_ZONEINFO}"
     echo -e "${CYAN}Keymap:${RESET} ${GENTOO_KEYMAP}"
-    echo -e "${CYAN}Target disk:${RESET} ${TARGET_DISK}"
     echo -e "${CYAN}Network interface:${RESET} ${TARGET_LAN}"
     echo -e "${CYAN}Network mode:${RESET} ${NET_MODE}"
     if [[ "$NET_MODE" == "static" ]]; then
@@ -786,7 +829,7 @@ while true; do
     fi
 done
 
-# Installation starts here !!!
+# !!! Installation !!!
 echo ""
 detect_gpu
 optimize_cpu_flags
@@ -794,44 +837,9 @@ optimize_makeopts
 create_disk_partitions
 make_filesystems
 mount_filesystems
-cd /mnt/gentoo
 stage_download
 extract_stage
-
-# Setup system
-mkdir -p /mnt/gentoo/var/db/repos/gentoo
-mkdir -p /mnt/gentoo/etc/portage/repos.conf
-
-# Copy repos.conf
-log_info "✓ Copying repos.conf"
-if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/; then
-    log_error "Failed to copy repos.conf"
-    exit 1
-fi
-
-# Copy resol.conf
-log_info "✓ Copying resolv.conf"
-if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
-    log_error "Failed to copy resolv.conf"
-    exit 1
-fi
-
-# Remove downloaded tarball
-log_info "✓ Cleaning up downloaded tarball"
-rm "$STAGE3_FILENAME"
-
-log_info "✓ Mounting [proc, sys, dev, run] filesystems"
-mount -t proc none /mnt/gentoo/proc
-mount -t sysfs none /mnt/gentoo/sys
-mount --rbind /sys /mnt/gentoo/sys
-mount --make-rslave /mnt/gentoo/sys
-mount --rbind /dev /mnt/gentoo/dev
-mount --make-rslave /mnt/gentoo/dev
-mount --rbind /run /mnt/gentoo/run
-mount --make-rslave /mnt/gentoo/run
-test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
-mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
-chmod 1777 /dev/shm
+setup_system
 
 # Create config file
 log_info "✓ Creating chroot configuration file"
@@ -841,18 +849,18 @@ GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_GPU="$GENTOO_GPU"
 GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
 GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
-GENTOO_KERNEL="$GENTOO_KERNEL"
 TARGET_PART="$TARGET_PART"
 SWAP_TYPE="$SWAP_TYPE"
 GENTOO_HOSTNAME="$GENTOO_HOSTNAME"
 GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
 NET_MODE="$NET_MODE"
+GENTOO_KERNEL="$GENTOO_KERNEL"
 TARGET_LAN="$TARGET_LAN"
 TARGET_IP="$TARGET_IP"
 TARGET_CIDR="$TARGET_CIDR"
+TARGET_MASK="$TARGET_MASK"
 TARGET_GATE="$TARGET_GATE"
 TARGET_DNS="$TARGET_DNS"
-TARGET_MASK="$TARGET_MASK"
 GENTOO_KEYMAP="$GENTOO_KEYMAP"
 GENTOO_LOCALE="$GENTOO_LOCALE"
 GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
@@ -1056,7 +1064,7 @@ elif [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; th
     rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
     cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
     mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
-    chown -R apache:apache /var/www/ && usermod -aG apache realist
+    chown -R apache:apache /var/www/ && usermod -aG apache $GENTOO_USER
     chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
     echo ""
     log_info "✓ Type mySQL root password"
