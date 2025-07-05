@@ -203,74 +203,68 @@ configure_swap_partition() {
 create_disk_partitions() {
     log_info "✓ Creating partitions on ${TARGET_DISK}"
 
-    # Set base device name (e.g. /dev/sda -> /dev/sda1, /dev/nvme0n1 -> /dev/nvme0n1p1)
-    if [[ "${TARGET_DISK}" =~ nvme ]]; then
-        PART_PREFIX="p"
-    else
-        PART_PREFIX=""
-    fi
-
-    if ! parted -s ${TARGET_DISK} mklabel gpt; then
+    if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
         log_error "Failed to create GPT partition table"
         exit 1
     fi
 
     if [[ "$SWAP_TYPE" == "partition" ]]; then
-        log_info "✓ Creating partitions with swap"
-
-        parted -a optimal --script ${TARGET_DISK} \
-            unit mib \
-            mkpart primary fat32 1 ${UEFI_DISK_SIZE} \
-            name 1 UEFI \
-            set 1 esp on \
-            mkpart primary ext4 ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) \
-            name 2 BOOT \
-            mkpart primary linux-swap $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) \
-            name 3 SWAP \
-            mkpart primary $((UEFI_DISK_SIZE + BOOT_DISK_SIZE + SWAP_SIZE)) -1 \
-            name 4 ROOT
-
-        log_info "✓ Creating swap partition"
-        if ! mkswap -L SWAP "${TARGET_DISK}${PART_PREFIX}3"; then
-            log_error "Failed to create swap partition"
+        # UEFI, SWAP, ROOT
+        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
+            unit mib
+            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+            name 1 UEFI
+            set 1 bios_grub on
+            mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
+            name 2 SWAP
+            mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
+            name 3 ROOT
+            quit
+PARTED_END
+        then
+            log_error "Failed to create partitions with swap"
             exit 1
         fi
 
-        ROOT_PARTITION="${TARGET_DISK}${PART_PREFIX}4"
-
+        # Make SWAP
+        log_info "✓ Creating swap partition"
+        if ! mkswap -L SWAP ${TARGET_PART}2 &>/dev/null; then
+            log_error "Failed to create swap partition"
+            exit 1
+        fi
+        # Make ROOT
+        ROOT_PARTITION="${TARGET_PART}3"
     else
-        log_info "✓ Creating partitions without swap"
+        # Two partitions: UEFI, ROOT [no swap]
+        if ! parted -a optimal ${TARGET_DISK} << PARTED_END &>/dev/null
+            unit mib
+            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
+            name 1 UEFI
+            set 1 bios_grub on
+            mkpart primary ${UEFI_DISK_SIZE} -1
+            name 2 ROOT
+            quit
+PARTED_END
+        then
+            log_error "Failed to create partitions"
+            exit 1
+        fi
 
-        parted -a optimal --script ${TARGET_DISK} \
-            unit mib \
-            mkpart primary fat32 1 ${UEFI_DISK_SIZE} \
-            name 1 UEFI \
-            set 1 esp on \
-            mkpart primary ext4 ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) \
-            name 2 BOOT \
-            mkpart primary $((UEFI_DISK_SIZE + BOOT_DISK_SIZE)) -1 \
-            name 3 ROOT
-
-        ROOT_PARTITION="${TARGET_DISK}${PART_PREFIX}3"
+        ROOT_PARTITION="${TARGET_PART}2"
     fi
 }
 
 # Make filesystems
 make_filesystems() {
-    log_info "✓ Creating filesystems on UEFI, BOOT and ROOT partitions"
+    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
 
     if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
         log_error "Failed to create UEFI filesystem"
         exit 1
     fi
 
-    if ! mkfs.ext4 -l BOOT  ${TARGET_PART}2 &>/dev/null; then
-        log_error "Failed to create BOOT filesystem"
-        exit 1
-    fi
-
     if ! mkfs.f2fs -l ROOT -O extra_attr,inode_checksum,sb_checksum,compression -f ${ROOT_PARTITION} &>/dev/null; then
-        log_error "Failed to create ROOT filesystem"
+        log_error "Failed to create root filesystem"
         exit 1
     fi
 }
@@ -298,18 +292,8 @@ mount_filesystems() {
         exit 1
     fi
 
-    if ! mount ${TARGET_PART}2 /mnt/gentoo/boot; then
+    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot; then
         log_error "Failed to mount boot partition"
-        exit 1
-    fi
-
-    if ! mkdir -p /mnt/gentoo/boot/EFI; then
-        log_error "Failed to create EFI directory"
-        exit 1
-    fi
-
-    if ! mount ${TARGET_PART}1 /mnt/gentoo/boot/EFI; then
-        log_error "Failed to mount EFI partition"
         exit 1
     fi
 
@@ -358,9 +342,9 @@ input_settings() {
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Installation type:${RESET}"
     echo ""
     echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Clear Gentoo linux and LAMP server)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Clear Gentoo linux and Hyprland Desktop)${RESET}"
-    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Clear Gentoo linux and Hyprland Desktop, LAMP server and WBB Develop packages)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP server)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo Linux as Hyprland Desktop)${RESET}"
+    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo Linux as Hyprland Desktop, LAMP server and Develop packages)${RESET}"
 
     while true; do
         echo ""
@@ -396,37 +380,6 @@ input_settings() {
         esac
     done
 
-    # Disk selection
-    DISKS=($(lsblk -d -n -o NAME,TYPE | grep "disk" | grep -v "loop" | awk '{print "/dev/" $1}'))
-    echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected disks:${RESET}"
-    echo ""
-
-    for i in "${!DISKS[@]}"; do
-        disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
-        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
-    done
-
-    while true; do
-        echo ""
-        read -p "$(echo -e "${BLUE}Select disk by number (1-${#DISKS[@]}):${RESET} ")" disk_choice
-        if [[ "$disk_choice" =~ ^[1-9][0-9]*$ ]] && [ "$disk_choice" -le "${#DISKS[@]}" ]; then
-            TARGET_DISK="${DISKS[$((disk_choice-1))]}"
-            if [[ "$TARGET_DISK" == *"nvme"* ]]; then
-                PART_SUFFIX="p"
-                DISK_TYPE="NVMe"
-            else
-                PART_SUFFIX=""
-                DISK_TYPE="SSD/SATA"
-            fi
-            TARGET_PART="${TARGET_DISK}${PART_SUFFIX}"
-            echo -e "You selected: ${GREEN}${TARGET_DISK}${RESET} (${DISK_TYPE})"
-            break
-        else
-            log_error "Invalid choice. Please try again."
-        fi
-    done
-
     # UEFI partition size input
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}UEFI partition size in MB:${RESET}"
@@ -437,21 +390,7 @@ input_settings() {
         if [[ "$UEFI_DISK_SIZE" =~ ^[0-9]+$ ]] && [ "$UEFI_DISK_SIZE" -ge 1024 ]; then
             break
         else
-            log_error "UEFI partition size must be >= 1024 MB"
-        fi
-    done
-
-    # BOOT partition size input
-    echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}BOOT partition size in MB:${RESET}"
-    echo ""
-    while true; do
-        read -p "Enter BOOT partition size [$(echo -e "${GREEN}${BOOT_DISK_SIZE:-2048}${RESET}")]: " input
-        BOOT_DISK_SIZE=${input:-${BOOT_DISK_SIZE:-2048}}
-        if [[ "$BOOT_DISK_SIZE" =~ ^[0-9]+$ ]] && [ "$BOOT_DISK_SIZE" -ge 2048 ]; then
-            break
-        else
-            log_error "BOOT partition size must be >= 2048 MB"
+            log_error "UEFI partition size must be a number >= 1024 MB"
         fi
     done
 
@@ -606,7 +545,36 @@ input_settings() {
     read -p "Enter timezone [$(echo -e "${GREEN}${GENTOO_ZONEINFO:-Europe/Prague}${RESET}")]: " input
     GENTOO_ZONEINFO=${input:-${GENTOO_ZONEINFO:-Europe/Prague}}
 
+    # Disk selection
+    DISKS=($(lsblk -d -n -o NAME,TYPE | grep "disk" | grep -v "loop" | awk '{print "/dev/" $1}'))
+    echo ""
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected disks:${RESET}"
+    echo ""
 
+    for i in "${!DISKS[@]}"; do
+        disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
+        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
+    done
+
+    while true; do
+        echo ""
+        read -p "$(echo -e "${BLUE}Select disk by number (1-${#DISKS[@]}):${RESET} ")" disk_choice
+        if [[ "$disk_choice" =~ ^[1-9][0-9]*$ ]] && [ "$disk_choice" -le "${#DISKS[@]}" ]; then
+            TARGET_DISK="${DISKS[$((disk_choice-1))]}"
+            if [[ "$TARGET_DISK" == *"nvme"* ]]; then
+                PART_SUFFIX="p"
+                DISK_TYPE="NVMe"
+            else
+                PART_SUFFIX=""
+                DISK_TYPE="SSD/SATA"
+            fi
+            TARGET_PART="${TARGET_DISK}${PART_SUFFIX}"
+            echo -e "You selected: ${GREEN}${TARGET_DISK}${RESET} (${DISK_TYPE})"
+            break
+        else
+            log_error "Invalid choice. Please try again."
+        fi
+    done
 
     # Network interface selection
     NET_INTERFACES=($(ls /sys/class/net | grep -v lo))
@@ -732,7 +700,7 @@ if [ ! -d "/mnt/gentoo" ]; then
 fi
 
 # Check required commands
-for cmd in wget parted mkfs.fat mkfs.f2fs mkfs.ext4 curl; do
+for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
     if ! command -v "$cmd" &> /dev/null; then
         log_error "Required command '$cmd' is not available"
         exit 1
@@ -757,7 +725,6 @@ while true; do
     echo ""
     echo -e "${CYAN}Installation type:${RESET} ${INSTALL_TYPE_NAME}"
     echo -e "${CYAN}UEFI size:${RESET} ${UEFI_DISK_SIZE} MB"
-    echo -e "${CYAN}BOOT size:${RESET} ${BOOT_DISK_SIZE} MB"
     echo -e "${CYAN}Username:${RESET} ${GENTOO_USER}"
     echo -e "${CYAN}User password:${RESET} ${GENTOO_USER_PASSWORD}"
     echo -e "${CYAN}Root password:${RESET} ${GENTOO_ROOT_PASSWORD}"
@@ -944,16 +911,13 @@ cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
 
-echo "${TARGET_PART}1   /efi    vfat    noatime      0 0" >> /etc/fstab
-echo "${TARGET_PART}2   /boot   ext4    noatime      0 0" >> /etc/fstab
+echo "${TARGET_PART}1   /boot   vfat    noatime      0 0" >> /etc/fstab
 
 if [[ "$SWAP_TYPE" == "partition" ]]; then
-    echo "${TARGET_PART}3   none    swap    sw      0 0" >> /etc/fstab
-    echo "${TARGET_PART}4   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
-    echo "${TARGET_PART}5   /home   f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
-else
     echo "${TARGET_PART}3   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
-    echo "${TARGET_PART}4   /home   f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
+    echo "${TARGET_PART}2   none    swap    sw      0 0" >> /etc/fstab
+else
+    echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
 
 log_info "✓ Setting [hostname, consolefont, hosts]"
@@ -1083,7 +1047,8 @@ elif [[ "$INSTALL_TYPE" == "hyprland" || "$INSTALL_TYPE" == "webdevelop" ]]; the
     log_info "✓ Installing additional Hyprland desktop packages"
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty thunar pavucontrol
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty xfce-base/thunar gui-apps/pavucontrol media-sound/playerctl
+    emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
     eselect repository enable r7l && emaint sync -r r7l
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
@@ -1093,7 +1058,6 @@ elif [[ "$INSTALL_TYPE" == "hyprland" || "$INSTALL_TYPE" == "webdevelop" ]]; the
     rc-update add elogind boot && rc-update add dbus default
 
     #emerge gui-apps/wl-clipboard
-    #emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
     #emerge gui-apps/swaylock gui-apps/swww gui-apps/mako app-misc/brightnessctl
     #emerge gnome-extra/nm-applet net-misc/networkmanager net-wireless/blueman gnome-extra/polkit-gnome
 elif [[ "$INSTALL_TYPE" == "webdevelop" ]]; then
@@ -1117,7 +1081,7 @@ echo -e "${GREEN}║         You can now reboot and enjoy your new system!      
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
-elif [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
+if [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
 echo -e "${GREEN}║                                                                ║${RESET}"
 echo -e "${GREEN}║     for config phpmyadmin secret blowfish tokenrun command     ║${RESET}"
 echo -e "${GREEN}║    nano /var/www/localhost/htdocs/phpmyadmin/config.inc.php    ║${RESET}"
