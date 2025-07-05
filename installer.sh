@@ -569,8 +569,15 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}GRUB resolution:${RESET}"
     echo ""
-    read -p "Enter GRUB gfx mode [$(echo -e "${GREEN}${GRUB_GFX_MODE:-1920x1080x32}${RESET}")]: " input
-    GRUB_GFX_MODE=${input:-${GRUB_GFX_MODE:-1920x1080x32}}
+    while true; do
+        read -p "Enter GRUB gfx mode [$(echo -e "${GREEN}${GRUB_GFX_MODE:-1920x1080x32}${RESET}")]: " input
+        GRUB_GFX_MODE=${input:-${GRUB_GFX_MODE:-1920x1080x32}}
+        if validate_grub_resolution "$GRUB_GFX_MODE"; then
+            break
+        else
+            log_error "Invalid format. Use: WIDTHxHEIGHTxDEPTH (e.g. 1920x1080x32)"
+        fi
+    done
 
     # Locale selection
     echo ""
@@ -728,7 +735,7 @@ for cmd in wget parted mkfs.fat mkfs.f2fs curl cp tar mount swapon chattr lspci 
 done
 
 # Check internet connectivity
-log_info "✓ Internet connectivity successfully checked"
+log_info "✓ Internet connectivity detected online"
 if ! ping -c 1 8.8.8.8 &> /dev/null; then
     log_error "No internet connectivity detected"
     exit 1
@@ -915,7 +922,7 @@ else
 fi
 log_info "✓ Configuring CPU FLAGS"
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
-log_info "✓ Configuring MAKEOPTS in make.conf"
+log_info "✓ Configuring MAKEOPTS"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
 log_info "✓ Update /etc/fstab file"
