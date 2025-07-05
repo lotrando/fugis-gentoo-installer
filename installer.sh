@@ -344,6 +344,7 @@ input_settings() {
     echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP/NGINX server)${RESET}"
     echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo linux with Wayland desktop)${RESET}"
+    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo linux with my settings)${RESET}"
 
     while true; do
         echo ""
@@ -364,6 +365,12 @@ input_settings() {
             3)
                 INSTALL_TYPE="hyprland"
                 INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            4)
+                INSTALL_TYPE="webdevelop"
+                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop for Web Development"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
@@ -1018,7 +1025,8 @@ rc-update add consolefont default && rc-update add numlock default && rc-update 
 # Installation type specific packages and configuration
 if [[ "$INSTALL_TYPE" == "classic" ]]; then
     log_info "✓ Installing additional packages"
-elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
+    #emerge gentoolkit eix
+elif [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
     log_info "✓ Installing additional Webserver packages and configs"
     emerge phpmyadmin dev-db/mysql dev-lang/php
     eselect php set cli php8.4 && eselect php set apache2 php8.4
@@ -1031,13 +1039,16 @@ elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
     mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
     chown -R apache:apache /var/www/ && usermod -aG apache realist
     chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+    echo ""
+    log_info "✓ Type mySQL root password"
     emerge --config mysql
     rc-update add apache2 default && rc-update add mysql default
-elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
+elif [[ "$INSTALL_TYPE" == "hyprland" || "$INSTALL_TYPE" == "webdevelop" ]]; then
     log_info "✓ Installing additional Hyprland desktop packages"
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty xfce-base/thunar gui-apps/pavucontrol media-sound/playerctl
+    emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
     eselect repository enable r7l && emaint sync -r r7l
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
@@ -1046,10 +1057,12 @@ elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
     chsh -s /bin/zsh $GENTOO_USER
     rc-update add elogind boot && rc-update add dbus default
 
-    #emerge gui-apps/pavucontrol media-sound/playerctl gui-apps/wl-clipboard gui-apps/wofi xfce-base/thunar
+    #emerge gui-apps/wl-clipboard
     #emerge gui-apps/swaylock gui-apps/swww gui-apps/mako app-misc/brightnessctl
     #emerge gnome-extra/nm-applet net-misc/networkmanager net-wireless/blueman gnome-extra/polkit-gnome
-    #emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
+elif [[ "$INSTALL_TYPE" == "webdevelop" ]]; then
+    log_info "✓ Installing additional Web Development packages"
+    emerge nodejs vscode composer
 fi
 
 log_info "✓ Removing chroot script"
@@ -1068,4 +1081,11 @@ echo -e "${GREEN}║         You can now reboot and enjoy your new system!      
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
+elif [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
+echo -e "${GREEN}║                                                                ║${RESET}"
+echo -e "${GREEN}║     for config phpmyadmin secret blowfish tokenrun command     ║${RESET}"
+echo -e "${GREEN}║    nano /var/www/localhost/htdocs/phpmyadmin/config.inc.php    ║${RESET}"
+echo -e "${GREEN}║           uncomment and set line in config file to             ║${RESET}"
+echo -e "${GREEN}║ $cfg['blowfish_secret'] = 'WntN0150l71sLq/{w4V0:ZXFv7WcB-Qz';  ║${RESET}"
+fi
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"

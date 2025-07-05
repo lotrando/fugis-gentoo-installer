@@ -1,0 +1,109 @@
+# package.use file -> /etc/portage/package.use
+
+# APP-ADMIN
+app-admin/sudo -sendmail
+
+# APP-CRYPT
+app-crypt/gcr gtk
+
+# APP-ESELECT
+app-eselect/eselect-php apache2 fpm
+
+# APP-MISC
+app-misc/mc -slang unicode gpm sftp
+
+# APP-TEXT
+app-text/poppler cairo
+app-text/xmlto text
+
+# DEV-CPP
+dev-cpp/cairomm X
+dev-cpp/gtkmm X
+
+# DEV-LANG
+dev-lang/php apache2 bcmath curl exif fpm gd mysql mysqli pdo soap sockets spell sqlite xmlreader xmlwriter zip
+
+# DEV-LIBS
+dev-libs/libdbusmenu gtk3
+dev-libs/libgit2 -git
+
+# DEV-PYTHON
+dev-python/pycairo X
+
+# DEV-QT
+dev-qt/qtgui egl X
+dev-qt/qtbase opengl accessibility X
+dev-qt/qtdeclarative opengl accessibility
+dev-qt/qtwayland accessibility
+dev-qt/qt5compat qml
+dev-qt/qtmultimedia opengl
+dev-qt/qttools opengl
+
+# GNOME-BASE
+gnome-base/gvfs cdda http udisks nfs archive fuse
+
+# GUI-APPS
+gui-apps/rofi-wayland drun windowmode
+gui-apps/waybar pulseaudio udev network tray upower wifi evdev
+gui-apps/wlogout zsh-completions
+
+# MEDIA-FONTS
+media-fonts/terminus-font -ru-g
+
+# MEDIA-GFX
+media-gfx/imagemagick djvu jpeg svg xml zip
+
+# MEDIA-LIBS
+media-libs/libepoxy X
+media-libs/libglvnd X
+media-libs/libsdl2 gles2 X
+media-libs/libvpx postproc
+media-libs/mesa X
+media-libs/vulkan-loader X
+media-libs/gst-plugins-base opengl
+media-libs/gegl cairo
+
+# MEDIA-PLUGINS
+media-plugins/audacious-plugins gtk -qt6 nls pipewire cdda cue ffmpeg flac http lame libnotify modplug mp3 opus sndfile wavpack
+
+# MEDIA-SOUND
+media-sound/audacious qt6 gtk
+
+# MEDIA-VIDEO
+media-video/ffmpeg modplug mp3 opus pulseaudio svg v4l openh264 libv4l x264 x265 xvid webp
+media-video/mpv cdda dvd jpeg
+media-video/pipewire sound-server v4l
+
+# NET-LIBS
+net-libs/nodejs npm
+
+# SYS-APPS
+sys-apps/eza -git
+
+# SYS-BOOT
+sys-boot/grub mount
+
+# SYS-KERNEL
+sys-kernel/linux-firmware initramfs
+sys-kernel/zen-sources symlink
+sys-kernel/git-sources symlink
+sys-kernel/gentoo-sources symlink
+
+# SYS-LIBS
+sys-libs/zlib minizip
+
+# WWW-CLIENT
+www-client/firefox pulseaudio lto pgo
+
+# X11-LIBS
+x11-libs/cairo X
+x11-libs/pango X
+
+# KDE-FRAMEWORKS
+kde-frameworks/sonnet qml
+
+
+
+
+
+

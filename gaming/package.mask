@@ -1,0 +1,2 @@
+# package.mask file -> /etc/portage/package.mask
+

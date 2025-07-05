@@ -6,6 +6,9 @@ app-admin/sudo -sendmail
 # APP-MISC
 app-misc/mc -slang unicode gpm sftp
 
+# APP-TEXT
+app-text/xmlto text
+
 # DEV-CPP
 dev-cpp/cairomm X
 
@@ -37,9 +40,15 @@ sys-kernel/zen-sources symlink
 sys-kernel/git-sources symlink
 sys-kernel/gentoo-sources symlink
 
+# SYS-LIBS
+sys-libs/zlib minizip
+
+# WWW-CLIENT
+www-client/firefox pulseaudio lto pgo
+
 # X11-LIBS
 x11-libs/cairo X
 x11-libs/pango X
 
+# KDE-FRAMEWORKS
 kde-frameworks/sonnet qml
-app-text/xmlto text
