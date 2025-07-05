@@ -348,7 +348,7 @@ input_settings() {
 
     while true; do
         echo ""
-        read -p "$(echo -e "${BLUE}Choose installation type (1-3):${RESET} ")" install_choice
+        read -p "$(echo -e "${BLUE}Choose installation type (1-4):${RESET} ")" install_choice
         case "$install_choice" in
             1)
                 INSTALL_TYPE="classic"
