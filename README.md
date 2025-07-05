@@ -42,7 +42,7 @@ chmod +x installer.sh && ./installer.sh
 ╔═════════════════════════════════════════════╗
 ║                - F U G I S -                ║
 ║  Fast Universal Gentoo Installation Script  ║
-║   Created by Lotrando (c) 2024-2025 v 1.8   ║
+║   Created by Lotrando (c) 2024-2025 v 1.9   ║
 ╚═════════════════════════════════════════════╝
 [INFO] ✓ User have root privileges
 [INFO] ✓ Script is running in live environment
