@@ -2,10 +2,6 @@
 
 # APP-EDITORS
 app-editors/vscode Microsoft-vscode
-app-editors/sublime-text Sublime
 
 # SYS-KERNEL
 sys-kernel/linux-firmware linux-fw-redistributable no-source-code
-
-games-util/steam-launcher ValveSteamLicense
-app-arch/unrar unRAR
