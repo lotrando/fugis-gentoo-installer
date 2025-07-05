@@ -46,7 +46,16 @@ strip_colors() {
 
 # Umount partitions function
 cleanup() {
-    umount -Rf /mnt/gentoo 2>/dev/null || true
+    # Deactivate swap if active
+    [[ "$SWAP_TYPE" == "partition" ]] && swapoff ${TARGET_PART}2 2>/dev/null || true
+
+    # Unmount in reverse order
+    umount -f /mnt/gentoo/boot 2>/dev/null || true
+    umount -f /mnt/gentoo/run 2>/dev/null || true
+    umount -f /mnt/gentoo/dev 2>/dev/null || true
+    umount -f /mnt/gentoo/sys 2>/dev/null || true
+    umount -f /mnt/gentoo/proc 2>/dev/null || true
+    umount -f /mnt/gentoo 2>/dev/null || true
 }
 
 # Error handling
@@ -173,6 +182,15 @@ validate_username() {
     return 1
 }
 
+# Validation Resolution
+validate_grub_resolution() {
+    local resolution=$1
+    if [[ $resolution =~ ^[0-9]+x[0-9]+x[0-9]+$ ]]; then
+        return 0
+    fi
+    return 1
+}
+
 # Configure SWAP partition
 configure_swap_partition() {
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
@@ -256,10 +274,10 @@ PARTED_END
 
 # Make filesystems
 make_filesystems() {
-    log_info "✓ Creating filesystems on UEFI and ROOT partitions"
+    log_info "✓ Creating filesystems on UEFI/BOOT and ROOT partitions"
 
     if ! mkfs.fat -n UEFI -F32 ${TARGET_PART}1 &>/dev/null; then
-        log_error "Failed to create UEFI filesystem"
+        log_error "Failed to create UEFI/BOOT filesystem"
         exit 1
     fi
 
@@ -320,16 +338,16 @@ stage_download() {
     log_info "✓ Downloading: $STAGE3_FILENAME"
 
     if ! wget -q "$STAGE3_DOWNLOAD_URL"; then
-        log_error "Failed to download stage3 tarball"
+        log_error "Failed to download stage tarball"
         exit 1
     fi
 }
 
-# Extract stage3
+# Extract stage
 extract_stage() {
-    log_info "✓ Extracting stage3: $STAGE3_FILENAME"
+    log_info "✓ Extracting downloaded stage"
     if ! tar xpf ${STAGE3_FILENAME} --xattrs-include='*.*' --numeric-owner; then
-        log_error "Failed to extract stage3 tarball"
+        log_error "Failed to extract stage tarball"
         exit 1
     fi
 }
@@ -344,7 +362,7 @@ input_settings() {
     echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP server)${RESET}"
     echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo Linux as Hyprland Desktop)${RESET}"
-    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo Linux as Hyprland Desktop, LAMP server and Develop packages)${RESET}"
+    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo Linux as Development Workstation)${RESET}"
 
     while true; do
         echo ""
@@ -352,25 +370,25 @@ input_settings() {
         case "$install_choice" in
             1)
                 INSTALL_TYPE="classic"
-                INSTALL_TYPE_NAME="Gentoo Linux Classic"
+                INSTALL_TYPE_NAME="Classic (Clear Gentoo Linux)"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
             2)
                 INSTALL_TYPE="webserver"
-                INSTALL_TYPE_NAME="Gentoo linux as LAMP server"
+                INSTALL_TYPE_NAME="Webserver (Gentoo Linux as LAMP server)"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
             3)
                 INSTALL_TYPE="hyprland"
-                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop"
+                INSTALL_TYPE_NAME="Hyprland (Gentoo Linux as Hyprland Desktop)"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
             4)
                 INSTALL_TYPE="webdevelop"
-                INSTALL_TYPE_NAME="Gentoo Linux as Hyprland Desktop, LAMP server and Develop packages"
+                INSTALL_TYPE_NAME="Webdevelop (Gentoo Linux as Development Workstation)"
                 echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
                 break
                 ;;
@@ -380,17 +398,48 @@ input_settings() {
         esac
     done
 
+    # Disk selection
+    DISKS=($(lsblk -d -n -o NAME,TYPE | grep "disk" | grep -v "loop" | awk '{print "/dev/" $1}'))
+    echo ""
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected disks:${RESET}"
+    echo ""
+
+    for i in "${!DISKS[@]}"; do
+        disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
+        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
+    done
+
+    while true; do
+        echo ""
+        read -p "$(echo -e "${BLUE}Select disk by number (1-${#DISKS[@]}):${RESET} ")" disk_choice
+        if [[ "$disk_choice" =~ ^[1-9][0-9]*$ ]] && [ "$disk_choice" -le "${#DISKS[@]}" ]; then
+            TARGET_DISK="${DISKS[$((disk_choice-1))]}"
+            if [[ "$TARGET_DISK" == *"nvme"* ]]; then
+                PART_SUFFIX="p"
+                DISK_TYPE="NVMe"
+            else
+                PART_SUFFIX=""
+                DISK_TYPE="SSD/SATA"
+            fi
+            TARGET_PART="${TARGET_DISK}${PART_SUFFIX}"
+            echo -e "You selected: ${GREEN}${TARGET_DISK}${RESET} (${DISK_TYPE})"
+            break
+        else
+            log_error "Invalid choice. Please try again."
+        fi
+    done
+
     # UEFI partition size input
     echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}UEFI partition size in MB:${RESET}"
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}UEFI/BOOT partition size in MB:${RESET}"
     echo ""
     while true; do
-        read -p "Enter UEFI partition size [$(echo -e "${GREEN}${UEFI_DISK_SIZE:-1024}${RESET}")]: " input
+        read -p "Enter UEFI/BOOT partition size [$(echo -e "${GREEN}${UEFI_DISK_SIZE:-1024}${RESET}")]: " input
         UEFI_DISK_SIZE=${input:-${UEFI_DISK_SIZE:-1024}}
         if [[ "$UEFI_DISK_SIZE" =~ ^[0-9]+$ ]] && [ "$UEFI_DISK_SIZE" -ge 1024 ]; then
             break
         else
-            log_error "UEFI partition size must be a number >= 1024 MB"
+            log_error "UEFI/BOOT partition size must be >= 1024 MB"
         fi
     done
 
@@ -398,22 +447,22 @@ input_settings() {
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}SWAP config:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}SWAP Partition${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}SWAP Off${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}SWAP Off${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}SWAP Partition${RESET}"
 
     while true; do
         echo ""
         read -p "$(echo -e "${BLUE}Choose SWAP type (1-2):${RESET} ")" swap_choice
         case "$swap_choice" in
             1)
-                SWAP_TYPE="partition"
-                echo -e "You have chosen: ${GREEN}SWAP Partition${RESET}"
-                configure_swap_partition
+                SWAP_TYPE="none"
+                echo -e "You have chosen: ${GREEN}SWAP Off${RESET}"
                 break
                 ;;
             2)
-                SWAP_TYPE="none"
-                echo -e "You have chosen: ${GREEN}SWAP Off${RESET}"
+                SWAP_TYPE="partition"
+                echo -e "You have chosen: ${GREEN}SWAP Partition${RESET}"
+                configure_swap_partition
                 break
                 ;;
             *)
@@ -482,11 +531,11 @@ input_settings() {
 
     # Kernel selection
     echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Kernel selection:${RESET}"
+    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Kernel sources selection:${RESET}"
     echo ""
-    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen Sources (optimized for desktop)${RESET}"
-    echo -e "${YELLOW}2.${RESET} ${WHITE}Git Sources (development kernel)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Gentoo Sources (stable with Gentoo patches)${RESET}"
+    echo -e "${YELLOW}1.${RESET} ${WHITE}Zen (optimized for desktop)${RESET}"
+    echo -e "${YELLOW}2.${RESET} ${WHITE}Gentoo (stable for webserver)${RESET}"
+    echo -e "${YELLOW}3.${RESET} ${WHITE}Git (development kernel)${RESET}"
 
     while true; do
         echo ""
@@ -499,14 +548,14 @@ input_settings() {
                 break
                 ;;
             2)
-                GENTOO_KERNEL="git-sources"
-                KERNEL_NAME="Git Sources"
+                GENTOO_KERNEL="gentoo-sources"
+                KERNEL_NAME="Gentoo Sources"
                 echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
                 break
                 ;;
             3)
-                GENTOO_KERNEL="gentoo-sources"
-                KERNEL_NAME="Gentoo Sources"
+                GENTOO_KERNEL="git-sources"
+                KERNEL_NAME="Git Sources"
                 echo -e "You have chosen: ${GREEN}${KERNEL_NAME}${RESET}"
                 break
                 ;;
@@ -545,37 +594,6 @@ input_settings() {
     read -p "Enter timezone [$(echo -e "${GREEN}${GENTOO_ZONEINFO:-Europe/Prague}${RESET}")]: " input
     GENTOO_ZONEINFO=${input:-${GENTOO_ZONEINFO:-Europe/Prague}}
 
-    # Disk selection
-    DISKS=($(lsblk -d -n -o NAME,TYPE | grep "disk" | grep -v "loop" | awk '{print "/dev/" $1}'))
-    echo ""
-    echo -e "${LIGHT_MAGENTA}${UNDERLINE}Detected disks:${RESET}"
-    echo ""
-
-    for i in "${!DISKS[@]}"; do
-        disk_info=$(lsblk -d -n -o SIZE,MODEL "${DISKS[$i]}" 2>/dev/null | head -1)
-        echo -e "${YELLOW}$((i+1)).${RESET} ${WHITE}${DISKS[$i]}${RESET} ${CYAN}($disk_info)${RESET}"
-    done
-
-    while true; do
-        echo ""
-        read -p "$(echo -e "${BLUE}Select disk by number (1-${#DISKS[@]}):${RESET} ")" disk_choice
-        if [[ "$disk_choice" =~ ^[1-9][0-9]*$ ]] && [ "$disk_choice" -le "${#DISKS[@]}" ]; then
-            TARGET_DISK="${DISKS[$((disk_choice-1))]}"
-            if [[ "$TARGET_DISK" == *"nvme"* ]]; then
-                PART_SUFFIX="p"
-                DISK_TYPE="NVMe"
-            else
-                PART_SUFFIX=""
-                DISK_TYPE="SSD/SATA"
-            fi
-            TARGET_PART="${TARGET_DISK}${PART_SUFFIX}"
-            echo -e "You selected: ${GREEN}${TARGET_DISK}${RESET} (${DISK_TYPE})"
-            break
-        else
-            log_error "Invalid choice. Please try again."
-        fi
-    done
-
     # Network interface selection
     NET_INTERFACES=($(ls /sys/class/net | grep -v lo))
     echo ""
@@ -613,9 +631,11 @@ input_settings() {
             TARGET_MASK=""
             TARGET_GATE=""
             TARGET_DNS=""
+            TARGET_CIDR="24"  # default for DHCP (not used but defined)
             break
         elif [[ "$net_cfg" == "2" ]]; then
             NET_MODE="static"
+            TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
             echo -e "You selected: ${GREEN}Static IP${RESET}"
 
             # Static IP validation
@@ -656,7 +676,6 @@ input_settings() {
             log_error "Invalid choice. Please try again."
         fi
     done
-
 }
 
 # Initialize clean log file
@@ -684,23 +703,24 @@ for line in "${HEADER_TEXT[@]}"; do
 done
 echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
 
-# Prerequisites check
-log_info "✓ Checks prerequisites for installation"
-
 # Check user must be root
+log_info "✓ User have root privileges"
 if [ "$(id -u)" -ne 0 ]; then
     log_error "This script must be run as root!"
     exit 1
 fi
 
+
 # Check if the script is run from a live environment
+log_info "✓ Script is running in live environment"
 if [ ! -d "/mnt/gentoo" ]; then
     log_error "Must be run from a live environment!"
     exit 1
 fi
 
 # Check required commands
-for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
+log_info "✓ All required commands are available"
+for cmd in wget parted mkfs.fat mkfs.f2fs curl cp tar mount swapon chattr lspci cpuid2cpuflags; do
     if ! command -v "$cmd" &> /dev/null; then
         log_error "Required command '$cmd' is not available"
         exit 1
@@ -708,12 +728,11 @@ for cmd in wget parted mkfs.fat mkfs.f2fs curl; do
 done
 
 # Check internet connectivity
+log_info "✓ Internet connectivity successfully checked"
 if ! ping -c 1 8.8.8.8 &> /dev/null; then
     log_error "No internet connectivity detected"
     exit 1
 fi
-
-log_info "✓ All prerequisites met"
 
 # Main input setting loop
 while true; do
@@ -762,8 +781,6 @@ done
 
 # Installation starts here !!!
 echo ""
-log_info "✓ Starting installation process..."
-
 detect_gpu
 optimize_cpu_flags
 optimize_makeopts
@@ -779,12 +796,14 @@ mkdir -p /mnt/gentoo/var/db/repos/gentoo
 mkdir -p /mnt/gentoo/etc/portage/repos.conf
 
 # Copy repos.conf
+log_info "✓ Copying repos.conf"
 if ! cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/; then
     log_error "Failed to copy repos.conf"
     exit 1
 fi
 
 # Copy resol.conf
+log_info "✓ Copying resolv.conf"
 if ! cp /etc/resolv.conf /mnt/gentoo/etc/; then
     log_error "Failed to copy resolv.conf"
     exit 1
@@ -794,7 +813,7 @@ fi
 log_info "✓ Cleaning up downloaded tarball"
 rm "$STAGE3_FILENAME"
 
-log_info "✓ Mounting [proc sys dev run] filesystems"
+log_info "✓ Mounting [proc, sys, dev, run] filesystems"
 mount -t proc none /mnt/gentoo/proc
 mount -t sysfs none /mnt/gentoo/sys
 mount --rbind /sys /mnt/gentoo/sys
@@ -806,13 +825,6 @@ mount --make-rslave /mnt/gentoo/run
 test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
 mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
 chmod 1777 /dev/shm
-
-# CIDR
-if [[ "$NET_MODE" == "static" ]]; then
-    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
-else
-    TARGET_CIDR="24"  # default for DHCP (not used but defined)
-fi
 
 # Create config file
 log_info "✓ Creating chroot configuration file"
@@ -1020,11 +1032,11 @@ chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
 log_info "✓ Running services"
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default && rc-update add gpm default
+rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
 # Installation type specific packages and configuration
 if [[ "$INSTALL_TYPE" == "classic" ]]; then
-    log_info "✓ Installing additional packages"
+    #log_info "✓ Installing additional packages"
     #emerge gentoolkit eix
 elif [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
     log_info "✓ Installing additional Webserver packages and configs"
@@ -1057,8 +1069,6 @@ elif [[ "$INSTALL_TYPE" == "hyprland" || "$INSTALL_TYPE" == "webdevelop" ]]; the
     chsh -s /bin/zsh $GENTOO_USER
     rc-update add elogind boot && rc-update add dbus default
 
-    #emerge gui-apps/wl-clipboard
-    #emerge gui-apps/swaylock gui-apps/swww gui-apps/mako app-misc/brightnessctl
     #emerge gnome-extra/nm-applet net-misc/networkmanager net-wireless/blueman gnome-extra/polkit-gnome
 elif [[ "$INSTALL_TYPE" == "webdevelop" ]]; then
     log_info "✓ Installing additional Web Development packages"
@@ -1083,7 +1093,7 @@ echo -e "${GREEN}╠════════════════════
 echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
 if [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
 echo -e "${GREEN}║                                                                ║${RESET}"
-echo -e "${GREEN}║     for config phpmyadmin secret blowfish tokenrun command     ║${RESET}"
+echo -e "${GREEN}║    for config phpmyadmin secret blow fish token run command    ║${RESET}"
 echo -e "${GREEN}║    nano /var/www/localhost/htdocs/phpmyadmin/config.inc.php    ║${RESET}"
 echo -e "${GREEN}║           uncomment and set line in config file to             ║${RESET}"
 echo -e "${GREEN}║ $cfg['blowfish_secret'] = 'WntN0150l71sLq/{w4V0:ZXFv7WcB-Qz';  ║${RESET}"
