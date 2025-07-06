@@ -19,7 +19,7 @@ chmod +x installer.sh && ./installer.sh
 
 or
 
-- boot from USB stick find script and run
+- boot from USB stick
 - in bash run next commands
 ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
