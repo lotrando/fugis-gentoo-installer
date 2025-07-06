@@ -44,10 +44,6 @@ chmod +x installer.sh && ./installer.sh
 ║  Fast Universal Gentoo Installation Script  ║
 ║   Created by Lotrando (c) 2024-2025 v 1.9   ║
 ╚═════════════════════════════════════════════╝
-[INFO] ✓ User have root privileges
-[INFO] ✓ Script is running in live environment
-[INFO] ✓ All required commands are available
-[INFO] ✓ Internet connectivity detected online
 ```
 ```
 Choose installation type:
@@ -68,20 +64,24 @@ Select network interface:
 Select network configuration:
 ```
 ```
-[INFO] ✓ Detected Intel GPU
-[INFO] ✓ Detect CPU flags
-[INFO] ✓ Detect MAKEOPTS
+[INFO] ✓ Checkig if have root privileges
+[INFO] ✓ Checkig if script running in live environment
+[INFO] ✓ Check if all required commands are available
+[INFO] ✓ Check Internet connectivity
+[INFO] ✓ Detected XXX GPU
+[INFO] ✓ Detect CPU flags: XXX
+[INFO] ✓ Detect MAKEOPTS: XXX
 [INFO] ✓ Creating partitions on /dev/sda
 [INFO] ✓ Creating filesystems on UEFI/BOOT and ROOT partitions
 [INFO] ✓ Mounting created filesystems
-[INFO] ✓ Downloading: stage3-amd64-openrc-20250702T205201Z.tar.xz
+[INFO] ✓ Downloading: stage3-amd64-openrc-XXXXXXXXXXXXXXXX.tar.xz
 [INFO] ✓ Extracting downloaded stage
 [INFO] ✓ Copying repos.conf
 [INFO] ✓ Copying resolv.conf
 [INFO] ✓ Cleaning up downloaded tarball
 [INFO] ✓ Mounting [proc, sys, dev, run] filesystems
 [INFO] ✓ Creating chroot configuration file
-[INFO] ✓ Creating install script
+[INFO] ✓ Generate install script
 [INFO] ✓ Starting chroot installation
 [INFO] ✓ Updating portage tree
 [INFO] ✓ Configuring portage
@@ -89,10 +89,12 @@ Select network configuration:
 [INFO] ✓ Configuring CPU FLAGS
 [INFO] ✓ Configuring MAKEOPTS
 [INFO] ✓ Update /etc/fstab file
-[INFO] ✓ Setting [hostname, consolefont, hosts]
+[INFO] ✓ Setting hostname
+[INFO] ✓ Setting consolefont
+[INFO] ✓ Setting hosts
 [INFO] ✓ Setting network
 [INFO] ✓ Setting keymap
-[INFO] ✓ Setting locales
+[INFO] ✓ Generate locales
 [INFO] ✓ Setting timezone
 [INFO] ✓ Installing kernel packages
 ```
@@ -197,14 +199,20 @@ Select network configuration:
 ```
 ```
 [INFO] ✓ Create root password
-[INFO] ✓ Create user lotrando and his password
-[INFO] ✓ Configuring SUDO for lotrando
-[INFO] ✓ Configuring GRUB and setting resolution 1920x1080x32
-[INFO] ✓ Installing GRUB and create config file
+[INFO] ✓ Create user $GENTOO_USER and his password
+[INFO] ✓ Configuring SUDO
+[INFO] ✓ Setting GRUB resolution to 1920x1080x32
+[INFO] ✓ Installing GRUB
 ```
 ```
 Installing for x86_64-efi platform.
 Installation finished. No error reported.
+```
+```
+[INFO] ✓ Download GRUB background png
+[INFO] ✓ Create GRUB config file
+```
+```
 Generating grub configuration file ...
 Found background: /boot/grub/grub.png
 Found linux image: /boot/vmlinuz-6.15.4-gentoo-x86_64
@@ -216,7 +224,8 @@ Adding boot menu entry for UEFI Firmware Settings ...
 done
 ```
 ```
-[INFO] ✓ Installing user configuration files
+[INFO] ✓ Download gentoo configuration files archive
+[INFO] ✓ Extracting downloaded configuration files
 [INFO] ✓ Running services
 ```
 ```

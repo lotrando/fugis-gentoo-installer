@@ -930,7 +930,7 @@ install_development_packages() {
     emerge nodejs vscode composer
 }
 
-log_warning "✓ Starting chroot installation"
+log_info "✓ Starting chroot installation"
 
 log_info "✓ Updating portage tree"
 emerge-webrsync &>/dev/null
@@ -975,13 +975,13 @@ else
     echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
 
-log_info "✓ Setting hostname"
+log_info "✓ Setting hostname to ${GENTOO_HOSTNAME}"
 sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
 
 log_info "✓ Setting consolefont"
 sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 
-log_info "✓ Setting hosts"
+log_info "✓ Setting hosts to ${GENTOO_HOSTNAME}.${GENTOO_DOMAINNAME}"
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
@@ -1053,7 +1053,7 @@ log_info "✓ Create user $GENTOO_USER and his password"
 useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
-log_info "✓ Configuring SUDO
+log_info "✓ Configuring SUDO"
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
 log_info "✓ Setting GRUB resolution to ${GRUB_GFX_MODE}"
@@ -1070,7 +1070,7 @@ log_info "✓ Installing GRUB"
 cd /boot/grub/
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=${INSTALL_TYPE^^} --recheck ${TARGET_DISK}
 
-log_info "✓ Download GRUB bacground png"
+log_info "✓ Download GRUB background png"
 wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
 
 log_info "✓ Create GRUB config file
