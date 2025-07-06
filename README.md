@@ -50,22 +50,22 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Internet connectivity detected online
 ```
 ```
-Choose installation type
-Select disk
-Enter UEFI/BOOT partition size
-Choose SWAP type
-Enter username
-Enter user password
-Enter root password
-Enter hostname [gentoo]:
-Enter domain name [gentoo.dev]:
-Choose kernel type
+Choose installation type:
+Select disk:
+Enter UEFI/BOOT partition size:
+Choose SWAP type:
+Enter username:
+Enter user password:
+Enter root password:
+Enter hostname:
+Enter domain name:
+Choose kernel type:
 Enter GRUB gfx mode:
-Setup locales
-Enter keymap
-Enter timezone
-Select network interface
-Select network configuration
+Setup locales:
+Enter keymapP:
+Enter timezone:
+Select network interface:
+Select network configuration:
 ```
 ```
 [INFO] ✓ Detected Intel GPU
@@ -87,7 +87,7 @@ Select network configuration
 [INFO] ✓ Configuring portage
 [INFO] ✓ Configuring GPU
 [INFO] ✓ Configuring CPU FLAGS
-[INFO] ✓ Configuring MAKEOPTS in make.conf
+[INFO] ✓ Configuring MAKEOPTS
 [INFO] ✓ Update /etc/fstab file
 [INFO] ✓ Setting [hostname, consolefont, hosts]
 [INFO] ✓ Setting network
