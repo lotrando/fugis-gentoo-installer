@@ -97,29 +97,29 @@ Select network configuration:
 [INFO] ✓ Installing kernel packages
 ```
 ```
->>> Emerging (1 of 5) dev-libs/elfutils
->>> Emerging (2 of 5) app-arch/cpio
->>> Emerging (3 of 5) virtual/libelf
->>> Emerging (4 of 5) app-alternatives/cpio
->>> Emerging (5 of 5) sys-kernel/gentoo-sources
+>>> Emerging (01) dev-libs/elfutils
+>>> Emerging (02) app-arch/cpio
+>>> Emerging (03) virtual/libelf
+>>> Emerging (04) app-alternatives/cpio
+>>> Emerging (05) sys-kernel/gentoo-sources
 ```
 ```
 [INFO] ✓ Installing firmware and genkernel
 ```
 ```
->>> Emerging (1 of 13) sys-kernel/linux-firmware
->>> Emerging (2 of 13) app-text/asciidoc
->>> Emerging (3 of 13) app-crypt/rhash
->>> Emerging (4 of 13) dev-libs/jsoncpp
->>> Emerging (5 of 13) net-dns/c-ares
->>> Emerging (6 of 13) net-libs/nghttp3
->>> Emerging (7 of 13) app-arch/libarchive
->>> Emerging (8 of 13) dev-libs/libuv
->>> Emerging (9 of 13) net-libs/nghttp2
->>> Emerging (10 of 13) net-libs/libpsl
->>> Emerging (11 of 13) net-misc/curl
->>> Emerging (12 of 13) dev-build/cmake
->>> Emerging (13 of 13) sys-kernel/genkernel
+>>> Emerging (01) sys-kernel/linux-firmware
+>>> Emerging (02) app-text/asciidoc
+>>> Emerging (03) app-crypt/rhash
+>>> Emerging (04) dev-libs/jsoncpp
+>>> Emerging (05) net-dns/c-ares
+>>> Emerging (06) net-libs/nghttp3
+>>> Emerging (07) app-arch/libarchive
+>>> Emerging (08) dev-libs/libuv
+>>> Emerging (09) net-libs/nghttp2
+>>> Emerging (10) net-libs/libpsl
+>>> Emerging (11) net-misc/curl
+>>> Emerging (12) dev-build/cmake
+>>> Emerging (13) sys-kernel/genkernel
 ```
 
 ```
@@ -133,42 +133,42 @@ Compiling 6.15.4-gentoo-x86_64 modules ...
 [INFO] ✓ Installing important packages
 ```
 ```
->>> Emerging (1 of 36) sys-apps/hwdata
->>> Emerging (2 of 36) dev-lang/python-exec
->>> Emerging (3 of 36) app-text/mandoc
->>> Emerging (4 of 36) sys-fs/dosfstools
->>> Emerging (5 of 36) sys-fs/fuse-common
->>> Emerging (6 of 36) dev-libs/gobject-introspection-common
->>> Emerging (7 of 36) sys-libs/efivar
->>> Emerging (8 of 36) media-libs/libpng
->>> Emerging (9 of 36) app-text/lowdown
->>> Emerging (10 of 36) dev-python/pygments
->>> Emerging (11 of 36) dev-lang/python
->>> Emerging (12 of 36) dev-libs/libpcre
->>> Emerging (13 of 36) media-libs/freetype
->>> Emerging (14 of 36) dev-lang/nasm
->>> Emerging (15 of 36) sys-fs/f2fs-tools
->>> Emerging (16 of 36) sys-libs/slang
->>> Emerging (17 of 36) dev-python/olefile
->>> Emerging (18 of 36) app-text/xmlto
->>> Emerging (19 of 36) virtual/libudev
->>> Emerging (20 of 36) x11-base/xorg-proto
->>> Emerging (21 of 36) sys-fs/fuse
->>> Emerging (22 of 36) sys-fs/lvm2
->>> Emerging (23 of 36) sys-apps/pciutils
->>> Emerging (24 of 36) media-libs/libjpeg-turbo
->>> Emerging (25 of 36) sys-boot/efibootmgr
->>> Emerging (26 of 36) dev-python/pillow
->>> Emerging (27 of 36) x11-apps/bdftopcf
->>> Emerging (28 of 36) sys-boot/grub
->>> Emerging (29 of 36) dev-python/docutils
->>> Emerging (30 of 36) media-fonts/terminus-font
->>> Emerging (31 of 36) dev-libs/glib
->>> Emerging (32 of 36) x11-misc/shared-mime-info
->>> Emerging (33 of 36) app-misc/mc
->>> Emerging (34 of 36) dev-util/desktop-file-utils
->>> Emerging (35 of 36) sys-process/btop
->>> Emerging (36 of 36) app-admin/sudo
+>>> Emerging (01) sys-apps/hwdata
+>>> Emerging (02) dev-lang/python-exec
+>>> Emerging (03) app-text/mandoc
+>>> Emerging (04) sys-fs/dosfstools
+>>> Emerging (05) sys-fs/fuse-common
+>>> Emerging (06) dev-libs/gobject-introspection-common
+>>> Emerging (07) sys-libs/efivar
+>>> Emerging (08) media-libs/libpng
+>>> Emerging (09) app-text/lowdown
+>>> Emerging (10) dev-python/pygments
+>>> Emerging (11) dev-lang/python
+>>> Emerging (12) dev-libs/libpcre
+>>> Emerging (13) media-libs/freetype
+>>> Emerging (14) dev-lang/nasm
+>>> Emerging (15) sys-fs/f2fs-tools
+>>> Emerging (16) sys-libs/slang
+>>> Emerging (17) dev-python/olefile
+>>> Emerging (18) app-text/xmlto
+>>> Emerging (19) virtual/libudev
+>>> Emerging (20) x11-base/xorg-proto
+>>> Emerging (21) sys-fs/fuse
+>>> Emerging (22) sys-fs/lvm2
+>>> Emerging (23) sys-apps/pciutils
+>>> Emerging (24) media-libs/libjpeg-turbo
+>>> Emerging (25) sys-boot/efibootmgr
+>>> Emerging (26) dev-python/pillow
+>>> Emerging (27) x11-apps/bdftopcf
+>>> Emerging (28) sys-boot/grub
+>>> Emerging (29) dev-python/docutils
+>>> Emerging (30) media-fonts/terminus-font
+>>> Emerging (31) dev-libs/glib
+>>> Emerging (32) x11-misc/shared-mime-info
+>>> Emerging (33) app-misc/mc
+>>> Emerging (34) dev-util/desktop-file-utils
+>>> Emerging (35) sys-process/btop
+>>> Emerging (36) app-admin/sudo
 ```
 ```
 [INFO] ✓ Create root password
@@ -202,7 +202,9 @@ done
  ```
 [INFO] ✓ Installing additional packages and configs
 ```
-[ ... emerge log oputput ... ]
+```
+>>> Emerging additional (X) packages by installation type
+```
 ```
 [INFO] ✓ Removing chroot script
 [INFO] ✓ Gentoo Linux installation completed successfully!
