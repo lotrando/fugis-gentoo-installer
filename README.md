@@ -45,8 +45,6 @@ chmod +x installer.sh && ./installer.sh
 ║  Fast Universal Gentoo Installation Script  ║
 ║   Created by Lotrando (c) 2024-2025 v 1.9   ║
 ╚═════════════════════════════════════════════╝
-```
-```
 Choose installation type:
 Select disk:
 Enter UEFI/BOOT partition size:
@@ -97,19 +95,20 @@ Select network configuration:
 [INFO] ✓ Setting keymap
 [INFO] ✓ Generate locales
 [INFO] ✓ Setting timezone
+```
+```
 [INFO] ✓ Installing kernel packages
-```
-```
+
 >>> Emerging (01) dev-libs/elfutils
 >>> Emerging (02) app-arch/cpio
 >>> Emerging (03) virtual/libelf
 >>> Emerging (04) app-alternatives/cpio
 >>> Emerging (05) sys-kernel/gentoo-sources
 ```
+
 ```
 [INFO] ✓ Installing firmware and genkernel
-```
-```
+
 >>> Emerging (01) sys-kernel/linux-firmware
 >>> Emerging (02) app-text/asciidoc
 >>> Emerging (03) app-crypt/rhash
@@ -124,11 +123,9 @@ Select network configuration:
 >>> Emerging (12) dev-build/cmake
 >>> Emerging (13) sys-kernel/genkernel
 ```
-
 ```
 [INFO] ✓ Starting generate kernel
-```
-```
+
 * kernel: >> Initializing ...
 *         >> Running 'make mrproper' ...
 *         >> Running 'make oldconfig' ...
@@ -159,8 +156,7 @@ Select network configuration:
 ```
 ```
 [INFO] ✓ Installing important packages
-```
-```
+
 >>> Emerging (01) sys-apps/hwdata
 >>> Emerging (02) dev-lang/python-exec
 >>> Emerging (03) app-text/mandoc
@@ -203,17 +199,17 @@ Select network configuration:
 [INFO] ✓ Create user $GENTOO_USER and his password
 [INFO] ✓ Configuring SUDO
 [INFO] ✓ Setting GRUB resolution to 1920x1080x32
+```
+```
 [INFO] ✓ Installing GRUB
-```
-```
+
 Installing for x86_64-efi platform.
 Installation finished. No error reported.
 ```
 ```
 [INFO] ✓ Download GRUB background png
 [INFO] ✓ Create GRUB config file
-```
-```
+
 Generating grub configuration file ...
 Found background: /boot/grub/grub.png
 Found linux image: /boot/vmlinuz-6.15.4-gentoo-x86_64
@@ -227,17 +223,17 @@ done
 ```
 [INFO] ✓ Download gentoo configuration files archive
 [INFO] ✓ Extracting downloaded configuration files
+```
+```
 [INFO] ✓ Running services
-```
-```
+
  * service consolefont added to runlevel default
  * service numlock added to runlevel default
  * service sshd added to runlevel default
- ```
- ```
+```
+```
 [INFO] ✓ Installing additional packages and configs
-```
-```
+
 >>> Emerging additional (X) packages by installation type
 ```
 ```
