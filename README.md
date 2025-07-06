@@ -29,18 +29,23 @@ wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/head
 ```
 chmod +x installer.sh && ./installer.sh
 ```
-
-### Installation procedure
-- setup script variables and run installer
-- it will take some time to compile the kernel and packages
-- reboot and use new clear Gentoo linux
-
+---
+### Maximized output window screenshot
 <img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
 ### Installation steps
+- Choose some variables to setup script
+- it will take some time to compile the kernel and packages
+- reboot and use new clear Gentoo linux
+-
 ```
 ╔═════════════════════════════════════════════╗
-║                - F U G I S -                ║
+║  ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗  ║
+║  ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝  ║
+║  █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗  ║
+║  ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║  ║
+║  ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║  ║
+║  ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝  ║
 ║  Fast Universal Gentoo Installation Script  ║
 ║   Created by Lotrando (c) 2024-2025 v 1.9   ║
 ╚═════════════════════════════════════════════╝
