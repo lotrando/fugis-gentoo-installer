@@ -723,66 +723,55 @@ input_settings() {
     done
 }
 
+check_requirements() {
+    log_info "✓ Checkig if have root privileges"
+    if [ "$(id -u)" -ne 0 ]; then
+        log_error "This script must be run as root!"
+        exit 1
+    fi
+
+    log_info "✓ Checkig if script running in live environment"
+    if [ ! -d "/mnt/gentoo" ]; then
+        log_error "Must be run from a live environment!"
+        exit 1
+    fi
+
+    log_info "✓ Check if all required commands are available"
+    for cmd in wget parted mkfs.fat mkfs.f2fs curl cp tar mount swapon chattr lspci cpuid2cpuflags; do
+        if ! command -v "$cmd" &>/dev/null; then
+            log_error "Required command '$cmd' is not available"
+            exit 1
+        fi
+    done
+
+    log_info "✓ Check Internet connectivity"
+    if ! ping -c 1 8.8.8.8 &>/dev/null; then
+        log_error "No internet connectivity detected"
+        exit 1
+    fi
+}
+
 # Initialize clean log file
 echo "--- FUGIS Installation Log ---" >"$GENTOO_LOG_FILE"
 trap 'handle_error $LINENO' ERR
 set -e
 trap cleanup EXIT
 
-# Installer header
-HEADER_TEXT=(
-    "               - F U G I S -               "
-    " Fast Universal Gentoo Installation Script "
-    "  Created by Lotrando (c) 2024-2025 v 1.9  "
-)
-
-HEADER_WIDTH=0
-for line in "${HEADER_TEXT[@]}"; do
-    [ ${#line} -gt $HEADER_WIDTH ] && HEADER_WIDTH=${#line}
-done
-HEADER_WIDTH=$((HEADER_WIDTH + 2))
-
-echo -e "${LIGHT_BLUE}╔$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╗${RESET}"
-for line in "${HEADER_TEXT[@]}"; do
-    printf "${LIGHT_BLUE}║ %-*s ║${RESET}\n" $((HEADER_WIDTH - 2)) "$line"
-done
-echo -e "${LIGHT_BLUE}╚$(printf '═%.0s' $(seq 1 $HEADER_WIDTH))╝${RESET}"
-
-# Check user must be root
-log_info "✓ User have root privileges"
-if [ "$(id -u)" -ne 0 ]; then
-    log_error "This script must be run as root!"
-    exit 1
-fi
-
-# Check if the script is run from a live environment
-log_info "✓ Script is running in live environment"
-if [ ! -d "/mnt/gentoo" ]; then
-    log_error "Must be run from a live environment!"
-    exit 1
-fi
-
-# Check required commands
-log_info "✓ All required commands are available"
-for cmd in wget parted mkfs.fat mkfs.f2fs curl cp tar mount swapon chattr lspci cpuid2cpuflags; do
-    if ! command -v "$cmd" &>/dev/null; then
-        log_error "Required command '$cmd' is not available"
-        exit 1
-    fi
-done
-
-# Check internet connectivity
-log_info "✓ Internet connectivity detected online"
-if ! ping -c 1 8.8.8.8 &>/dev/null; then
-    log_error "No internet connectivity detected"
-    exit 1
-fi
-
 # Main input setting loop
 while true; do
+    echo -e "${GREEN}╔═════════════════════════════════════════════╗${RESET}"
+    echo -e "${GREEN}║  ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗  ║${RESET}"
+    echo -e "${GREEN}║  ██╔════╝ ██║   ██║ ██╔════╝  ██║ ██╔════╝  ║${RESET}"
+    echo -e "${GREEN}║  █████╗   ██║   ██║ ██║  ███╗ ██║ ███████╗  ║${RESET}"
+    echo -e "${GREEN}║  ██╔══╝   ██║   ██║ ██║   ██║ ██║ ╚════██║  ║${RESET}"
+    echo -e "${GREEN}║  ██║      ╚██████╔╝ ╚██████╔╝ ██║ ███████║  ║${RESET}"
+    echo -e "${GREEN}║  ╚═╝       ╚═════╝   ╚═════╝  ╚═╝ ╚══════╝  ║${RESET}"
+    echo -e "${GREEN}║  Fast Universal Gentoo Installation Script  ║${RESET}"
+    echo -e "${GREEN}║   Created by Lotrando (c) 2024-2025 v 1.9   ║${RESET}"
+    echo -e "${GREEN}╚═════════════════════════════════════════════╝${RESET}"
+
     input_settings
 
-    # Summary and confirmation if everything is set
     echo ""
     echo -e "${LIGHT_GREEN}${UNDERLINE}Summary of your settings:${RESET}"
     echo ""
@@ -827,6 +816,7 @@ done
 
 # !!! Installation !!!
 echo ""
+check_requirements
 detect_gpu
 optimize_cpu_flags
 optimize_makeopts
@@ -840,44 +830,45 @@ setup_system
 # Create config file
 log_info "✓ Creating chroot configuration file"
 cat >/mnt/gentoo/tmp/chroot_config <<EOF
+GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
+GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 INSTALL_TYPE="$INSTALL_TYPE"
+TARGET_DISK="$TARGET_DISK"
+TARGET_PART="$TARGET_PART"
+SWAP_TYPE="$SWAP_TYPE"
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_GPU="$GENTOO_GPU"
 GENTOO_CPUFLAGS="$GENTOO_CPUFLAGS"
-GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
-TARGET_PART="$TARGET_PART"
-SWAP_TYPE="$SWAP_TYPE"
+GENTOO_KERNEL="$GENTOO_KERNEL"
+GENTOO_KEYMAP="$GENTOO_KEYMAP"
+GENTOO_LOCALE="$GENTOO_LOCALE"
+GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
+GRUB_GFX_MODE="$GRUB_GFX_MODE"
+GENTOO_USER="$GENTOO_USER"
+GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
+GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
 GENTOO_HOSTNAME="$GENTOO_HOSTNAME"
 GENTOO_DOMAINNAME="$GENTOO_DOMAINNAME"
 NET_MODE="$NET_MODE"
-GENTOO_KERNEL="$GENTOO_KERNEL"
 TARGET_LAN="$TARGET_LAN"
 TARGET_IP="$TARGET_IP"
 TARGET_CIDR="$TARGET_CIDR"
 TARGET_MASK="$TARGET_MASK"
 TARGET_GATE="$TARGET_GATE"
 TARGET_DNS="$TARGET_DNS"
-GENTOO_KEYMAP="$GENTOO_KEYMAP"
-GENTOO_LOCALE="$GENTOO_LOCALE"
-GENTOO_ZONEINFO="$GENTOO_ZONEINFO"
-GRUB_GFX_MODE="$GRUB_GFX_MODE"
-GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
-GENTOO_USER="$GENTOO_USER"
-GENTOO_USER_PASSWORD="$GENTOO_USER_PASSWORD"
-TARGET_DISK="$TARGET_DISK"
-GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 EOF
 
-# Create improved chroot script
-log_info "✓ Creating install script"
+# Generate improved chroot script
+log_info "✓ Generate install script"
 cat >/mnt/gentoo/root/gentoo-chroot.sh <<'CHROOT_SCRIPT_END'
 #!/bin/bash
 
-# Colors
 GREEN='\033[1;32m'
 RED='\033[1;31m'
 YELLOW='\033[1;33m'
 RESET='\033[0m'
+
+source /tmp/chroot_config
 
 log_info() {
     local message="[INFO] $1"
@@ -910,24 +901,28 @@ install_webserver_packages() {
     mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
     chown -R apache:apache /var/www/ && usermod -aG apache $GENTOO_USER
     chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
-    echo ""
     log_info "✓ Type mySQL root password"
     emerge --config mysql
     rc-update add apache2 default && rc-update add mysql default
 }
 
 install_hyprland_packages() {
-    log_info "✓ Installing Hyprland desktop packages"
+    log_info "✓ Enabling guru repository overlay for Hyprland desktop"
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty xfce-base/thunar gui-apps/pavucontrol media-sound/playerctl
+    log_info "✓ Installing Hyprland desktop packages"
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty
+    rc-update add elogind boot && rc-update add dbus default
+}
+
+install_ohmyzsh_packages() {
+    log_info "✓ Enabling r7l repository overlay for Oh My Zsh"
     eselect repository enable r7l && emaint sync -r r7l
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
     git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
     chsh -s /bin/zsh $GENTOO_USER
-    rc-update add elogind boot && rc-update add dbus default
 }
 
 install_development_packages() {
@@ -935,16 +930,13 @@ install_development_packages() {
     emerge nodejs vscode composer
 }
 
-# Chroot config load
-source /tmp/chroot_config
-
-log_info "✓ Starting chroot installation"
+log_warning "✓ Starting chroot installation"
 
 log_info "✓ Updating portage tree"
 emerge-webrsync &>/dev/null
-eselect news read new &>/dev/null
 
 log_info "✓ Configuring portage"
+eselect news read new &>/dev/null
 cd /etc/portage/
 rm -f make.conf
 rm -rf package.use
@@ -960,10 +952,12 @@ log_info "✓ Configuring GPU"
 if [[ -n "$GENTOO_GPU" ]]; then
     echo "VIDEO_CARDS=\"$GENTOO_GPU\"" >> make.conf
 else
-    echo "VIDEO_CARDS=\"fbdev vesa\"" >> make.conf
+    echo "VIDEO_CARDS=\"fbdev vesa vmware\"" >> make.conf
 fi
+
 log_info "✓ Configuring CPU FLAGS"
 echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
+
 log_info "✓ Configuring MAKEOPTS"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
@@ -981,9 +975,13 @@ else
     echo "${TARGET_PART}2   /       f2fs    defaults,rw,noatime,compress_algorithm=zstd,compress_extension=*  0 0" >> /etc/fstab
 fi
 
-log_info "✓ Setting [hostname, consolefont, hosts]"
+log_info "✓ Setting hostname"
 sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
+
+log_info "✓ Setting consolefont"
 sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
+
+log_info "✓ Setting hosts]
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
@@ -1004,6 +1002,7 @@ STATIC_BLOCK_END
     echo "static domain_name_servers=${TARGET_DNS}" >> /etc/dhcpcd.conf
     echo "nodhcp" >> /etc/dhcpcd.conf
 fi
+
 if [[ "$NET_MODE" == "dhcp" ]]; then
     echo "config_${TARGET_LAN}=\"dhcp\"" > /etc/conf.d/net
 else
@@ -1018,7 +1017,7 @@ keymap="us"
 KEYMAP_BLOCK_END
 sed -i "s/us/$GENTOO_KEYMAP/g" /etc/conf.d/keymaps
 
-log_info "✓ Setting locales"
+log_info "✓ Generate locales"
 cat > /etc/locale.gen << 'LOCALE_BLOCK_END'
 en_US.UTF-8 UTF-8
 LOCALE_BLOCK_END
@@ -1028,36 +1027,36 @@ LANG="en_US.UTF-8"
 LC_COLLATE="C"
 LOCALE_ENV_BLOCK_END
 sed -i "s/en_US.UTF-8/$GENTOO_LOCALE/g" /etc/env.d/02locale
+locale-gen --quiet
 
 log_info "✓ Setting timezone"
-locale-gen --quiet
 echo "$GENTOO_ZONEINFO" > /etc/timezone
 env-update >/dev/null 2>&1
 source /etc/profile >/dev/null 2>&1
 
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
-echo ""
+
 log_info "✓ Installing firmware and genkernel"
 emerge linux-firmware genkernel
-echo ""
+
 log_info "✓ Starting generate kernel"
-echo ""
 genkernel all
-echo ""
+
 log_info "✓ Installing important packages"
 emerge f2fs-tools dosfstools grub terminus-font sudo btop app-misc/mc
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
+
 log_info "✓ Create user $GENTOO_USER and his password"
 useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
-log_info "✓ Configuring SUDO for $GENTOO_USER"
+log_info "✓ Configuring SUDO
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/g' /etc/sudoers
 
-log_info "✓ Configuring GRUB and setting resolution ${GRUB_GFX_MODE}"
+log_info "✓ Setting GRUB resolution to ${GRUB_GFX_MODE}"
 cat >> /etc/default/grub << GRUB_BLOCK_END
 GRUB_GFXMODE=${GRUB_GFX_MODE}
 GRUB_GFXPAYLOAD_LINUX=keep
@@ -1067,15 +1066,21 @@ GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
-log_info "✓ Installing GRUB and create config file"
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=${INSTALL_TYPE^^} --recheck ${TARGET_DISK}
+log_info "✓ Installing GRUB"
 cd /boot/grub/
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=${INSTALL_TYPE^^} --recheck ${TARGET_DISK}
+
+log_info "✓ Download GRUB bacground png"
 wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
+
+log_info "✓ Create GRUB config file
 grub-mkconfig -o /boot/grub/grub.cfg
 
-log_info "✓ Installing user configuration files"
+log_info "✓ Download ${INSTALL_TYPE} configuration files archive"
 cd /home/$GENTOO_USER/
 wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
+
+log_info "✓ Extracting downloaded configuration files"
 unzip -qo dotfiles.zip
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
@@ -1083,12 +1088,13 @@ rm -f dotfiles.zip
 log_info "✓ Running services"
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
-# Installation type specific packages and configuration
 if [ "$INSTALL_TYPE" == "webserver" ]; then
     install_webserver_packages
 elif [ "$INSTALL_TYPE" == "hyprland" ]; then
+    install_ohmyzsh_packages
     install_hyprland_packages
 elif [ "$INSTALL_TYPE" == "webdevelop" ]; then
+    install_ohmyzsh_packages
     install_hyprland_packages
     install_webserver_packages
     install_development_packages
@@ -1110,7 +1116,7 @@ echo -e "${GREEN}║         You can now reboot and enjoy your new system!      
 echo -e "${GREEN}║    After reboot for update packages from stage3 run command    ║${RESET}"
 echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
-if [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
+if [[ "$INSTALL_TYPE" == "webserver" ]]; then
     echo -e "${GREEN}║                                                                ║${RESET}"
     echo -e "${GREEN}║    for config phpmyadmin secret blow fish token run command    ║${RESET}"
     echo -e "${GREEN}║    nano /var/www/localhost/htdocs/phpmyadmin/config.inc.php    ║${RESET}"
