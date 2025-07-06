@@ -33,7 +33,7 @@ chmod +x installer.sh && ./installer.sh
 - Choose some variables to setup script
 - it will take some time to compile the kernel and packages
 - reboot and use new clear Gentoo linux
--
+
 ```
 ╔═════════════════════════════════════════════╗
 ║  ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗  ║
