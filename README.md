@@ -126,35 +126,80 @@ Select network configuration:
 [INFO] ✓ Starting generate kernel
 ```
 ```
-* Gentoo Linux Genkernel; Version 4.3.17
-* Using genkernel configuration from '/etc/genkernel.conf' ...
-* Running with options: all
-
-* Working with Linux kernel 6.15.4-gentoo for x86_64
-* Using kernel config file '/usr/share/genkernel/arch/x86_64/generated-config' ...
-*
-* Note: The version above is subject to change (depends on config and status of kernel sources).
-
-* kernel: >> Initializing ...
-*         >> Running 'make mrproper' ...
-*         >> Running 'make oldconfig' ...
-*         >> Re-running 'make oldconfig' due to changed kernel options ...
-*         >> Kernel version has changed (probably due to config change) since genkernel start:
-*            We are now building Linux kernel 6.15.4-gentoo-x86_64 for x86_64 ...
-*         >> Compiling 6.15.4-gentoo-x86_64 bzImage ...
+Compiling 6.15.4-gentoo-x86_64 bzImage ...
+Compiling 6.15.4-gentoo-x86_64 modules ...
 ```
 ```
 [INFO] ✓ Installing important packages
 ```
-[ ... emerge log oputput ... ]
+```
+>>> Emerging (1 of 36) sys-apps/hwdata
+>>> Emerging (2 of 36) dev-lang/python-exec
+>>> Emerging (3 of 36) app-text/mandoc
+>>> Emerging (4 of 36) sys-fs/dosfstools
+>>> Emerging (5 of 36) sys-fs/fuse-common
+>>> Emerging (6 of 36) dev-libs/gobject-introspection-common
+>>> Emerging (7 of 36) sys-libs/efivar
+>>> Emerging (8 of 36) media-libs/libpng
+>>> Emerging (9 of 36) app-text/lowdown
+>>> Emerging (10 of 36) dev-python/pygments
+>>> Emerging (11 of 36) dev-lang/python
+>>> Emerging (12 of 36) dev-libs/libpcre
+>>> Emerging (13 of 36) media-libs/freetype
+>>> Emerging (14 of 36) dev-lang/nasm
+>>> Emerging (15 of 36) sys-fs/f2fs-tools
+>>> Emerging (16 of 36) sys-libs/slang
+>>> Emerging (17 of 36) dev-python/olefile
+>>> Emerging (18 of 36) app-text/xmlto
+>>> Emerging (19 of 36) virtual/libudev
+>>> Emerging (20 of 36) x11-base/xorg-proto
+>>> Emerging (21 of 36) sys-fs/fuse
+>>> Emerging (22 of 36) sys-fs/lvm2
+>>> Emerging (23 of 36) sys-apps/pciutils
+>>> Emerging (24 of 36) media-libs/libjpeg-turbo
+>>> Emerging (25 of 36) sys-boot/efibootmgr
+>>> Emerging (26 of 36) dev-python/pillow
+>>> Emerging (27 of 36) x11-apps/bdftopcf
+>>> Emerging (28 of 36) sys-boot/grub
+>>> Emerging (29 of 36) dev-python/docutils
+>>> Emerging (30 of 36) media-fonts/terminus-font
+>>> Emerging (31 of 36) dev-libs/glib
+>>> Emerging (32 of 36) x11-misc/shared-mime-info
+>>> Emerging (33 of 36) app-misc/mc
+>>> Emerging (34 of 36) dev-util/desktop-file-utils
+>>> Emerging (35 of 36) sys-process/btop
+>>> Emerging (36 of 36) app-admin/sudo
+```
 ```
 [INFO] ✓ Create root password
 [INFO] ✓ Create user lotrando and his password
 [INFO] ✓ Configuring SUDO for lotrando
 [INFO] ✓ Configuring GRUB and setting resolution 1920x1080x32
 [INFO] ✓ Installing GRUB and create config file
+```
+```
+Installing for x86_64-efi platform.
+Installation finished. No error reported.
+Generating grub configuration file ...
+Found background: /boot/grub/grub.png
+Found linux image: /boot/vmlinuz-6.15.4-gentoo-x86_64
+Found initrd image: /boot/amd-uc.img
+Warning: os-prober will not be executed to detect other bootable partitions.
+Systems on them will not be added to the GRUB boot configuration.
+Check GRUB_DISABLE_OS_PROBER documentation entry.
+Adding boot menu entry for UEFI Firmware Settings ...
+done
+```
+```
 [INFO] ✓ Installing user configuration files
 [INFO] ✓ Running services
+```
+```
+ * service consolefont added to runlevel default
+ * service numlock added to runlevel default
+ * service sshd added to runlevel default
+ ```
+ ```
 [INFO] ✓ Installing additional packages and configs
 ```
 [ ... emerge log oputput ... ]

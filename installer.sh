@@ -1087,14 +1087,11 @@ log_info "✓ Running services"
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
 # Installation type specific packages and configuration
-if [[ "$INSTALL_TYPE" == "classic" ]]; then
-    #log_info "✓ Installing additional packages"
-    #emerge gentoolkit eix
-elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
+if [ "$INSTALL_TYPE" == "webserver" ]; then
     install_webserver_packages
-elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
+elif [ "$INSTALL_TYPE" == "hyprland" ]; then
     install_hyprland_packages
-elif [[ "$INSTALL_TYPE" == "webdevelop" ]]; then
+elif [ "$INSTALL_TYPE" == "webdevelop" ]; then
     install_hyprland_packages
     install_webserver_packages
     install_development_packages
