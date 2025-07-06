@@ -1067,13 +1067,13 @@ GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
 log_info "✓ Installing GRUB"
-cd /boot/grub/
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=${INSTALL_TYPE^^} --recheck ${TARGET_DISK}
 
 log_info "✓ Download GRUB background png"
+cd /boot/grub/
 wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
 
-log_info "✓ Create GRUB config file
+log_info "✓ Create GRUB config file"
 grub-mkconfig -o /boot/grub/grub.cfg
 
 log_info "✓ Download ${INSTALL_TYPE} configuration files archive"
