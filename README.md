@@ -3,25 +3,23 @@
  is a tweaked bash script that quickly install Gentoo Linux onto your hard drive.
 
 ---
+### Maximized output window screenshot
+<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
+
 ### How to use this script ?
 - download minimal installation ISO from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
 - create bootable USB stick with this ISO
-
-#### Option 1. Download and run script
 - download [script](https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh) from GitHub
 - save script to bootable USB stick
 - make script executable
+- boot from USB stick find script and run
 ```
-chmod +x installer.sh
-```
-- boot from USB stick and run from USB
-```
-  ./installer.sh
+chmod +x installer.sh && ./installer.sh
 ```
 
+or
 
-#### Option 2. Run downloaded script direct from shell
-- boot from USB stick
+- boot from USB stick find script and run
 - in bash run next commands
 ```
 wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh
@@ -30,8 +28,6 @@ wget https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/head
 chmod +x installer.sh && ./installer.sh
 ```
 ---
-### Maximized output window screenshot
-<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
 
 ### Installation steps
 - Choose some variables to setup script
