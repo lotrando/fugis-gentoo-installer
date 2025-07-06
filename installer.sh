@@ -981,7 +981,7 @@ sed -i "s/localhost/$GENTOO_HOSTNAME/g" /etc/conf.d/hostname
 log_info "✓ Setting consolefont"
 sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 
-log_info "✓ Setting hosts]
+log_info "✓ Setting hosts"
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
