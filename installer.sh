@@ -921,7 +921,6 @@ install_hyprland_packages() {
     emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty xfce-base/thunar gui-apps/pavucontrol media-sound/playerctl
-    emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
     eselect repository enable r7l && emaint sync -r r7l
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
