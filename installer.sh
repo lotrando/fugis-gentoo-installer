@@ -217,47 +217,45 @@ configure_swap_partition() {
 create_disk_partitions() {
     log_info "✓ Creating partitions on ${TARGET_DISK}"
 
-    if ! parted -s ${TARGET_DISK} mklabel gpt &>/dev/null; then
+    # Vytvoření GPT tabulky
+    if ! parted --script "${TARGET_DISK}" mklabel gpt; then
         log_error "Failed to create GPT partition table"
         exit 1
     fi
 
     if [[ "$SWAP_TYPE" == "partition" ]]; then
         # UEFI, SWAP, ROOT
-        if ! parted -a optimal ${TARGET_DISK} <<PARTED_END &>/dev/null; then
-            unit mib
-            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-            name 1 UEFI
-            set 1 bios_grub on
-            mkpart primary linux-swap ${UEFI_DISK_SIZE} $((UEFI_DISK_SIZE + SWAP_SIZE))
-            name 2 SWAP
-            mkpart primary $((UEFI_DISK_SIZE + SWAP_SIZE)) -1
-            name 3 ROOT
-            quit
-PARTED_END
+        if ! parted --script --align optimal "${TARGET_DISK}" \
+            unit mib \
+            mkpart primary fat32 1 "${UEFI_DISK_SIZE}" \
+            name 1 UEFI \
+            set 1 bios_grub on \
+            mkpart primary linux-swap "${UEFI_DISK_SIZE}" "$((UEFI_DISK_SIZE + SWAP_SIZE))" \
+            name 2 SWAP \
+            mkpart primary "$((UEFI_DISK_SIZE + SWAP_SIZE))" -1 \
+            name 3 ROOT; then
             log_error "Failed to create partitions with swap"
             exit 1
         fi
 
-        # Make SWAP
+        # Vytvoření SWAP oddílu
         log_info "✓ Creating swap partition"
-        if ! mkswap -L SWAP ${TARGET_PART}2 &>/dev/null; then
+        if ! mkswap -L SWAP "${TARGET_PART}2" &>/dev/null; then
             log_error "Failed to create swap partition"
             exit 1
         fi
-        # Make ROOT
+
         ROOT_PARTITION="${TARGET_PART}3"
+
     else
-        # Two partitions: UEFI, ROOT [no swap]
-        if ! parted -a optimal ${TARGET_DISK} <<PARTED_END &>/dev/null; then
-            unit mib
-            mkpart primary fat32 1 ${UEFI_DISK_SIZE}
-            name 1 UEFI
-            set 1 bios_grub on
-            mkpart primary ${UEFI_DISK_SIZE} -1
-            name 2 ROOT
-            quit
-PARTED_END
+        # Pouze UEFI a ROOT
+        if ! parted --script --align optimal "${TARGET_DISK}" \
+            unit mib \
+            mkpart primary fat32 1 "${UEFI_DISK_SIZE}" \
+            name 1 UEFI \
+            set 1 bios_grub on \
+            mkpart primary "${UEFI_DISK_SIZE}" -1 \
+            name 2 ROOT; then
             log_error "Failed to create partitions"
             exit 1
         fi
