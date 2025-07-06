@@ -791,8 +791,6 @@ while true; do
     echo -e "${CYAN}Installation type:${RESET} ${INSTALL_TYPE_NAME}"
     echo -e "${CYAN}Target disk:${RESET} ${TARGET_DISK}"
     echo -e "${CYAN}Disk type:${RESET} ${DISK_TYPE}"
-    echo -e "${CYAN}Detected GPU:${RESET} ${GENTOO_GPU}"
-    echo -e "${CYAN}CPU Optimization:${RESET} ${GENTOO_MAKEOPTS}"
     echo -e "${CYAN}UEFI/BOOT size:${RESET} ${UEFI_DISK_SIZE} MB"
     echo -e "${CYAN}Locale:${RESET} ${GENTOO_LOCALE}"
     echo -e "${CYAN}Username:${RESET} ${GENTOO_USER}"
