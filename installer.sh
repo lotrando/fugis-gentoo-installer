@@ -11,11 +11,11 @@
 # ║   Created by Lotrando (c) 2024-2025 v 1.9   ║
 # ╚═════════════════════════════════════════════╝
 
-# Clear terminal
-clear
-
 # Set default terminal type
 export TERM=xterm-256color
+
+# Clear terminal
+clear
 
 # Variables
 GENTOO_INSTALLER_URL=https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main
