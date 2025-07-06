@@ -49,19 +49,37 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ All required commands are available
 [INFO] ✓ Internet connectivity detected online
 ```
-[ ... user inputs ... ]
 ```
-[INFO] ✓ Starting installation process...
+Choose installation type
+Select disk
+Enter UEFI/BOOT partition size
+Choose SWAP type
+Enter username
+Enter user password
+Enter root password
+Enter hostname [gentoo]:
+Enter domain name [gentoo.dev]:
+Choose kernel type
+Enter GRUB gfx mode:
+Setup locales
+Enter keymap
+Enter timezone
+Select network interface
+Select network configuration
+```
+```
 [INFO] ✓ Detected Intel GPU
 [INFO] ✓ Detect CPU flags
 [INFO] ✓ Detect MAKEOPTS
 [INFO] ✓ Creating partitions on /dev/sda
-[INFO] ✓ Creating filesystems on UEFI and ROOT partitions
+[INFO] ✓ Creating filesystems on UEFI/BOOT and ROOT partitions
 [INFO] ✓ Mounting created filesystems
 [INFO] ✓ Downloading: stage3-amd64-openrc-20250702T205201Z.tar.xz
-[INFO] ✓ Extracting stage3: stage3-amd64-openrc-20250702T205201Z.tar.xz
+[INFO] ✓ Extracting downloaded stage
+[INFO] ✓ Copying repos.conf
+[INFO] ✓ Copying resolv.conf
 [INFO] ✓ Cleaning up downloaded tarball
-[INFO] ✓ Mounting [proc sys dev run] filesystems
+[INFO] ✓ Mounting [proc, sys, dev, run] filesystems
 [INFO] ✓ Creating chroot configuration file
 [INFO] ✓ Creating install script
 [INFO] ✓ Starting chroot installation
@@ -72,21 +90,59 @@ chmod +x installer.sh && ./installer.sh
 [INFO] ✓ Configuring MAKEOPTS in make.conf
 [INFO] ✓ Update /etc/fstab file
 [INFO] ✓ Setting [hostname, consolefont, hosts]
-[INFO] ✓ Setting LAN
+[INFO] ✓ Setting network
 [INFO] ✓ Setting keymap
 [INFO] ✓ Setting locales
 [INFO] ✓ Setting timezone
 [INFO] ✓ Installing kernel packages
 ```
-[ ... emerge log oputput ... ]
 ```
-[INFO] ✓ Installing firmware
+>>> Emerging (1 of 5) dev-libs/elfutils
+>>> Emerging (2 of 5) app-arch/cpio
+>>> Emerging (3 of 5) virtual/libelf
+>>> Emerging (4 of 5) app-alternatives/cpio
+>>> Emerging (5 of 5) sys-kernel/gentoo-sources
 ```
-[ ... emerge log oputput ... ]
+```
+[INFO] ✓ Installing firmware and genkernel
+```
+```
+>>> Emerging (1 of 13) sys-kernel/linux-firmware
+>>> Emerging (2 of 13) app-text/asciidoc
+>>> Emerging (3 of 13) app-crypt/rhash
+>>> Emerging (4 of 13) dev-libs/jsoncpp
+>>> Emerging (5 of 13) net-dns/c-ares
+>>> Emerging (6 of 13) net-libs/nghttp3
+>>> Emerging (7 of 13) app-arch/libarchive
+>>> Emerging (8 of 13) dev-libs/libuv
+>>> Emerging (9 of 13) net-libs/nghttp2
+>>> Emerging (10 of 13) net-libs/libpsl
+>>> Emerging (11 of 13) net-misc/curl
+>>> Emerging (12 of 13) dev-build/cmake
+>>> Emerging (13 of 13) sys-kernel/genkernel
+```
+
 ```
 [INFO] ✓ Starting generate kernel
 ```
-[ ... genkernel log oputput ... ]
+```
+* Gentoo Linux Genkernel; Version 4.3.17
+* Using genkernel configuration from '/etc/genkernel.conf' ...
+* Running with options: all
+
+* Working with Linux kernel 6.15.4-gentoo for x86_64
+* Using kernel config file '/usr/share/genkernel/arch/x86_64/generated-config' ...
+*
+* Note: The version above is subject to change (depends on config and status of kernel sources).
+
+* kernel: >> Initializing ...
+*         >> Running 'make mrproper' ...
+*         >> Running 'make oldconfig' ...
+*         >> Re-running 'make oldconfig' due to changed kernel options ...
+*         >> Kernel version has changed (probably due to config change) since genkernel start:
+*            We are now building Linux kernel 6.15.4-gentoo-x86_64 for x86_64 ...
+*         >> Compiling 6.15.4-gentoo-x86_64 bzImage ...
+```
 ```
 [INFO] ✓ Installing important packages
 ```

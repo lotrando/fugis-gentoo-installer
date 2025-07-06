@@ -990,7 +990,7 @@ sed -i "s/default8x16/ter-v16b/g" /etc/conf.d/consolefont
 echo "127.0.0.1 $GENTOO_HOSTNAME.$GENTOO_DOMAINNAME $GENTOO_HOSTNAME localhost" >> /etc/hosts
 sed -i 's/127.0.0.1/#127.0.0.1/g' /etc/hosts
 
-log_info "✓ Setting LAN"
+log_info "✓ Setting network"
 if [[ "$NET_MODE" == "dhcp" ]]; then
     cat > /etc/dhcpcd.conf << 'DHCP_BLOCK_END'
 # DHCP configuration
@@ -1041,7 +1041,7 @@ source /etc/profile >/dev/null 2>&1
 log_info "✓ Installing kernel packages"
 emerge ${GENTOO_KERNEL}
 echo ""
-log_info "✓ Installing firmware"
+log_info "✓ Installing firmware and genkernel"
 emerge linux-firmware genkernel
 echo ""
 log_info "✓ Starting generate kernel"
