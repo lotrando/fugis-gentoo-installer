@@ -901,6 +901,45 @@ log_warning() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
 
+install_webserver_packages() {
+    log_info "✓ Installing Webserver packages"
+    emerge phpmyadmin dev-db/mysql dev-lang/php
+    eselect php set cli php8.4 && eselect php set apache2 php8.4
+    rm -R /usr/lib/tmpfiles.d/mysql.conf
+    echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
+    sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
+    echo "ServerName localhost" >> /etc/apache2/httpd.conf
+    rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
+    cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
+    mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
+    chown -R apache:apache /var/www/ && usermod -aG apache $GENTOO_USER
+    chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
+    echo ""
+    log_info "✓ Type mySQL root password"
+    emerge --config mysql
+    rc-update add apache2 default && rc-update add mysql default
+}
+
+install_hyprland_packages() {
+    log_info "✓ Installing Hyprland desktop packages"
+    emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
+    eselect repository enable guru && emaint sync -r guru
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty xfce-base/thunar gui-apps/pavucontrol media-sound/playerctl
+    emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
+    eselect repository enable r7l && emaint sync -r r7l
+    emerge oh-my-zsh gentoo-zsh-completions zsh-completions
+    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    chsh -s /bin/zsh $GENTOO_USER
+    rc-update add elogind boot && rc-update add dbus default
+}
+
+install_development_packages() {
+    log_info "✓ Installing Development packages"
+    emerge nodejs vscode composer
+}
+
 # Chroot config load
 source /tmp/chroot_config
 
@@ -1053,41 +1092,14 @@ rc-update add consolefont default && rc-update add numlock default && rc-update 
 if [[ "$INSTALL_TYPE" == "classic" ]]; then
     #log_info "✓ Installing additional packages"
     #emerge gentoolkit eix
-elif [[ "$INSTALL_TYPE" == "webserver" || "$INSTALL_TYPE" == "webdevelop" ]]; then
-    log_info "✓ Installing additional Webserver packages and configs"
-    emerge phpmyadmin dev-db/mysql dev-lang/php
-    eselect php set cli php8.4 && eselect php set apache2 php8.4
-    rm -R /usr/lib/tmpfiles.d/mysql.conf
-    echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
-    sed -i 's/SSL_DEFAULT_VHOST/PHP/g' /etc/conf.d/apache2
-    echo "ServerName localhost" >> /etc/apache2/httpd.conf
-    rm -R /var/www/localhost/htdocs/index.html && echo "<?php phpinfo(); ?>" > /var/www/localhost/htdocs/index.php
-    cp /var/www/localhost/htdocs/phpmyadmin/config.sample.inc.php /var/www/localhost/htdocs/phpmyadmin/config.inc.php
-    mkdir /var/www/localhost/htdocs/phpmyadmin/tmp/
-    chown -R apache:apache /var/www/ && usermod -aG apache $GENTOO_USER
-    chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
-    echo ""
-    log_info "✓ Type mySQL root password"
-    emerge --config mysql
-    rc-update add apache2 default && rc-update add mysql default
-elif [[ "$INSTALL_TYPE" == "hyprland" || "$INSTALL_TYPE" == "webdevelop" ]]; then
-    log_info "✓ Installing additional Hyprland desktop packages"
-    emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
-    eselect repository enable guru && emaint sync -r guru
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker waybar rofi-wayland wlogout kitty xfce-base/thunar gui-apps/pavucontrol media-sound/playerctl
-    emerge media-fonts/jetbrains-mono media-fonts/fontawesome media-fonts/nerd-fonts
-    eselect repository enable r7l && emaint sync -r r7l
-    emerge oh-my-zsh gentoo-zsh-completions zsh-completions
-    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
-    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-    chsh -s /bin/zsh $GENTOO_USER
-    rc-update add elogind boot && rc-update add dbus default
-
-    #emerge gnome-extra/nm-applet net-misc/networkmanager net-wireless/blueman gnome-extra/polkit-gnome
+elif [[ "$INSTALL_TYPE" == "webserver" ]]; then
+    install_webserver_packages
+elif [[ "$INSTALL_TYPE" == "hyprland" ]]; then
+    install_hyprland_packages
 elif [[ "$INSTALL_TYPE" == "webdevelop" ]]; then
-    log_info "✓ Installing additional Web Development packages"
-    emerge nodejs vscode composer
+    install_hyprland_packages
+    install_webserver_packages
+    install_development_packages
 fi
 
 log_info "✓ Removing chroot script"
