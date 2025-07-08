@@ -3,6 +3,24 @@
 # APP-ADMIN
 app-admin/sudo -sendmail
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# package.use file -> /etc/portage/package.use
+
+# APP-ADMIN
+app-admin/sudo -sendmail
+
 # APP-CRYPT
 app-crypt/gcr gtk
 
@@ -20,9 +38,6 @@ app-text/xmlto text
 dev-cpp/cairomm X
 dev-cpp/gtkmm X
 
-# DEV-LANG
-dev-lang/php apache2 bcmath curl exif fpm gd mysql mysqli pdo soap sockets spell sqlite xmlreader xmlwriter zip
-
 # DEV-LIBS
 dev-libs/libdbusmenu gtk3
 dev-libs/libgit2 -git
@@ -31,13 +46,16 @@ dev-libs/libgit2 -git
 dev-python/pycairo X
 
 # DEV-QT
-dev-qt/qtgui egl X
+dev-qt/qt5compat qml
 dev-qt/qtbase opengl accessibility X
 dev-qt/qtdeclarative opengl accessibility
-dev-qt/qtwayland accessibility
-dev-qt/qt5compat qml
+dev-qt/qtdeclarative opengl accessibility
+dev-qt/qtdeclarative opengl accessibility
+dev-qt/qtgui egl X
+dev-qt/qtmultimedia opengl
 dev-qt/qtmultimedia opengl
 dev-qt/qttools opengl
+dev-qt/qtwayland accessibility
 
 # GNOME-BASE
 gnome-base/gvfs cdda http udisks nfs archive fuse
@@ -50,9 +68,6 @@ gui-apps/wlogout zsh-completions
 # MEDIA-FONTS
 media-fonts/terminus-font -ru-g
 
-# MEDIA-GFX
-media-gfx/imagemagick djvu jpeg svg xml zip
-
 # MEDIA-LIBS
 media-libs/libepoxy X
 media-libs/libglvnd X
@@ -63,17 +78,6 @@ media-libs/vulkan-loader X
 media-libs/gst-plugins-base opengl
 media-libs/gegl cairo
 
-# MEDIA-PLUGINS
-media-plugins/audacious-plugins gtk -qt6 nls pipewire cdda cue ffmpeg flac http lame libnotify modplug mp3 opus sndfile wavpack
-
-# MEDIA-SOUND
-media-sound/audacious qt6 gtk
-
-# MEDIA-VIDEO
-media-video/ffmpeg modplug mp3 opus pulseaudio svg v4l openh264 libv4l x264 x265 xvid webp
-media-video/mpv cdda dvd jpeg
-media-video/pipewire sound-server v4l
-
 # NET-LIBS
 net-libs/nodejs npm
 
@@ -82,6 +86,9 @@ sys-apps/eza -git
 
 # SYS-BOOT
 sys-boot/grub mount
+
+# SYS-LIBS
+sys-libs/zlib minizip
 
 # SYS-KERNEL
 sys-kernel/linux-firmware initramfs
@@ -101,9 +108,3 @@ x11-libs/pango X
 
 # KDE-FRAMEWORKS
 kde-frameworks/sonnet qml
-
-
-
-
-
-

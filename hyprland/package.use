@@ -26,7 +26,8 @@ dev-qt/qttools opengl
 
 # GUI-APPS
 gui-apps/rofi-wayland drun windowmode
-gui-apps/waybar udev network tray upower wifi evdev
+gui-apps/waybar pulseaudio udev network tray upower wifi evdev
+gui-apps/wlogout zsh-completions
 
 # MEDIA-FONTS
 media-fonts/terminus-font -ru-g

@@ -3,6 +3,9 @@
 # APP-ADMIN
 app-admin/sudo -sendmail
 
+# APP-MISC
+app-misc/mc -slang unicode gpm sftp
+
 # MEDIA-FONTS
 media-fonts/terminus-font -ru-g
 
