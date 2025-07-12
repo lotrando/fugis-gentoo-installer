@@ -907,7 +907,7 @@ install_webserver_packages() {
 
 install_hyprland_packages() {
     log_info "✓ Enabling guru repository overlay for Hyprland desktop"
-    emerge eselect-repository procps pambase elogind sys-apps/dbus seatd eza
+    emerge procps pambase elogind sys-apps/dbus seatd eza
     eselect repository enable guru && emaint sync -r guru
     log_info "✓ Installing Hyprland desktop packages"
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty
@@ -1043,7 +1043,7 @@ log_info "✓ Starting generate kernel"
 genkernel all
 
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo btop app-misc/mc
+emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop app-misc/mc
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
