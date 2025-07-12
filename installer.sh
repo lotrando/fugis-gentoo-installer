@@ -926,7 +926,7 @@ install_ohmyzsh_packages() {
 
 install_development_packages() {
     log_info "✓ Installing Development packages"
-    emerge nodejs vscode composer
+    emerge nodejs vscode
 }
 
 log_info "✓ Starting chroot installation"
