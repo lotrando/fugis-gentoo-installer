@@ -724,6 +724,7 @@ input_settings() {
 }
 
 check_requirements() {
+    echo ""
     log_info "✓ Checkig if have root privileges"
     if [ "$(id -u)" -ne 0 ]; then
         log_error "This script must be run as root!"
