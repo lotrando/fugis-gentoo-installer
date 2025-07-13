@@ -903,22 +903,22 @@ install_webserver_packages() {
     chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
     log_info "✓ Type mySQL root password"
     emerge --config mysql
-    rc-update add apache2 default && rc-update add mysql default
+    rc-update add apache2 default > /dev/null 2>&1 && rc-update add mysql default > /dev/null 2>&1
 }
 
 install_hyprland_packages() {
-    log_info "✓ Enabling guru repository overlay for Hyprland desktop"
+    log_info "✓ Enabling repository overlay for Hyprland desktop [ guru ]"
+    eselect repository enable guru > /dev/null 2>&1 && emaint sync -r guru > /dev/null 2>&1
     emerge procps pambase elogind sys-apps/dbus seatd eza > /dev/null 2>&1
-    eselect repository enable guru && emaint sync -r guru
-    log_info "✓ Installing Hyprland desktop packages"
+    log_info "✓ Installing Hyprland desktop packages and kitty terminal"
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty > /dev/null 2>&1
-    rc-update add elogind boot && rc-update add dbus default
+    rc-update add elogind boot > /dev/null 2>&1 && rc-update add dbus default > /dev/null 2>&1
 }
 
 install_ohmyzsh_packages() {
-    log_info "✓ Enabling r7l repository overlay for Oh My Zsh"
-    eselect repository enable r7l && emaint sync -r r7l > /dev/null 2>&1
-    log_info "✓ Installing Oh My Zsh"
+    log_info "✓ Enabling repository overlay for Oh My Zsh [ r7l ]"
+    eselect repository enable r7l > /dev/null 2>&1 && emaint sync -r r7l > /dev/null 2>&1
+    log_info "✓ Installing [ oh-my-zsh, gentoo-zsh-completions, zsh-completions ] packages"
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions > /dev/null 2>&1
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k > /dev/null 2>&1
     git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions > /dev/null 2>&1
@@ -1069,14 +1069,14 @@ GRUB_TIMEOUT=5
 GRUB_BLOCK_END
 
 log_info "✓ Installing GRUB"
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=${INSTALL_TYPE^^} --recheck ${TARGET_DISK}
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=${INSTALL_TYPE^^} --recheck ${TARGET_DISK} > /dev/null 2>&1
 
 log_info "✓ Download GRUB background png"
 cd /boot/grub/
 wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/grub.png"
 
 log_info "✓ Create GRUB config file"
-grub-mkconfig -o /boot/grub/grub.cfg
+grub-mkconfig -o /boot/grub/grub.cfg > /dev/null 2>&1
 
 log_info "✓ Download ${INSTALL_TYPE} configuration files archive"
 cd /home/$GENTOO_USER/
@@ -1088,7 +1088,7 @@ chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
 log_info "✓ Running services"
-rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
+rc-update add consolefont default > /dev/null 2>&1 && rc-update add numlock default > /dev/null 2>&1 && rc-update add sshd default > /dev/null 2>&1
 
 if [ "$INSTALL_TYPE" == "gentoo" ]; then
     install_ohmyzsh_packages
