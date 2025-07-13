@@ -3,24 +3,6 @@
 # APP-ADMIN
 app-admin/sudo -sendmail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# package.use file -> /etc/portage/package.use
-
-# APP-ADMIN
-app-admin/sudo -sendmail
-
 # APP-CRYPT
 app-crypt/gcr gtk
 
@@ -37,6 +19,9 @@ app-text/xmlto text
 # DEV-CPP
 dev-cpp/cairomm X
 dev-cpp/gtkmm X
+
+# DEV-LANG
+dev-lang/php apache2 bcmath curl exif fpm gd mysql mysqli pdo soap sockets spell sql>
 
 # DEV-LIBS
 dev-libs/libdbusmenu gtk3
