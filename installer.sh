@@ -1088,7 +1088,10 @@ rm -f dotfiles.zip
 log_info "✓ Running services"
 rc-update add consolefont default && rc-update add numlock default && rc-update add sshd default
 
-if [ "$INSTALL_TYPE" == "webserver" ]; then
+if [ "$INSTALL_TYPE" == "gentoo" ]; then
+    install_ohmyzsh_packages
+elif [ "$INSTALL_TYPE" == "webserver" ]; then
+    install_ohmyzsh_packages
     install_webserver_packages
 elif [ "$INSTALL_TYPE" == "hyprland" ]; then
     install_ohmyzsh_packages
