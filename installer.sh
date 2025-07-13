@@ -1037,13 +1037,13 @@ env-update >/dev/null 2>&1
 source /etc/profile >/dev/null 2>&1
 
 log_info "✓ Installing kernel packages"
-emerge ${GENTOO_KERNEL}
+emerge ${GENTOO_KERNEL} > /dev/null 2>&1
 
 log_info "✓ Installing firmware and genkernel"
-emerge linux-firmware genkernel
+emerge linux-firmware genkernel > /dev/null 2>&1
 
 log_info "✓ Starting generate kernel"
-genkernel all
+genkernel all > /dev/null 2>&1
 
 log_info "✓ Installing important packages"
 emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop app-misc/mc > /dev/null 2>&1
