@@ -21,7 +21,7 @@ dev-cpp/cairomm X
 dev-cpp/gtkmm X
 
 # DEV-LANG
-dev-lang/php apache2 bcmath curl exif fpm gd mysql mysqli pdo soap sockets spell sql>
+dev-lang/php apache2 bcmath curl exif fpm gd mysql mysqli pdo soap sockets spell sqlite xmlreader xmlwriter zip
 
 # DEV-LIBS
 dev-libs/libdbusmenu gtk3
@@ -89,6 +89,7 @@ www-client/firefox pulseaudio lto pgo
 
 # X11-LIBS
 x11-libs/cairo X
+x11-libs/libxkbcommon-1.10.0 X
 x11-libs/pango X
 
 # KDE-FRAMEWORKS
