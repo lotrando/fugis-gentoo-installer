@@ -89,7 +89,7 @@ www-client/firefox pulseaudio lto pgo
 
 # X11-LIBS
 x11-libs/cairo X
-x11-libs/libxkbcommon-1.10.0 X
+x11-libs/libxkbcommon X
 x11-libs/pango X
 
 # KDE-FRAMEWORKS
