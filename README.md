@@ -11,7 +11,6 @@
 - create bootable USB stick with this ISO
 - download [script](https://raw.githubusercontent.com/lotrando/fugis-gentoo-installer/refs/heads/main/installer.sh) from GitHub
 - save script to bootable USB stick
-- make script executable
 - boot from USB stick find script and run
 ```
 chmod +x installer.sh && ./installer.sh
@@ -248,10 +247,6 @@ done
 ║                  sudo emerge -avNUDu @world                    ║
 ╚════════════════════════════════════════════════════════════════╝
 ```
-### Screen after installation
-
-<img src="after_install.png" alt="Screenshot after instalation procedure" />
-
 
 ### Positives of the Script
 - **Installation type:**

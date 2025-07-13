@@ -890,7 +890,7 @@ log_warning() {
 
 install_webserver_packages() {
     log_info "✓ Installing Webserver packages"
-    emerge phpmyadmin dev-db/mysql dev-lang/php
+    emerge phpmyadmin dev-db/mysql dev-lang/php > /dev/null 2>&1
     eselect php set cli php8.4 && eselect php set apache2 php8.4
     rm -R /usr/lib/tmpfiles.d/mysql.conf
     echo "d /run/mysqld 0755 mysql mysql -" > /usr/lib/tmpfiles.d/mysql.conf
@@ -908,26 +908,28 @@ install_webserver_packages() {
 
 install_hyprland_packages() {
     log_info "✓ Enabling guru repository overlay for Hyprland desktop"
-    emerge procps pambase elogind sys-apps/dbus seatd eza
+    emerge procps pambase elogind sys-apps/dbus seatd eza > /dev/null 2>&1
     eselect repository enable guru && emaint sync -r guru
     log_info "✓ Installing Hyprland desktop packages"
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty > /dev/null 2>&1
     rc-update add elogind boot && rc-update add dbus default
 }
 
 install_ohmyzsh_packages() {
     log_info "✓ Enabling r7l repository overlay for Oh My Zsh"
-    eselect repository enable r7l && emaint sync -r r7l
-    emerge oh-my-zsh gentoo-zsh-completions zsh-completions
-    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k
-    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    eselect repository enable r7l && emaint sync -r r7l > /dev/null 2>&1
+    log_info "✓ Installing Oh My Zsh"
+    emerge oh-my-zsh gentoo-zsh-completions zsh-completions > /dev/null 2>&1
+    git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k > /dev/null 2>&1
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions > /dev/null 2>&1
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-syntax-highlighting > /dev/null 2>&1
+    log_info "✓ Change terminal to Oh My Zsh for user $GENTOO_USER"
     chsh -s /bin/zsh $GENTOO_USER
 }
 
 install_development_packages() {
     log_info "✓ Installing Development packages"
-    emerge nodejs vscode
+    emerge nodejs vscode > /dev/null 2>&1
 }
 
 log_info "✓ Starting chroot installation"
@@ -1044,7 +1046,7 @@ log_info "✓ Starting generate kernel"
 genkernel all
 
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop app-misc/mc
+emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop app-misc/mc > /dev/null 2>&1
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
