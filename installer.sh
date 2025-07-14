@@ -903,22 +903,26 @@ install_webserver_packages() {
     chmod -R 775 /var/www/localhost/htdocs && chmod -R 777 /var/www/localhost/htdocs/phpmyadmin/tmp
     log_info "✓ Type mySQL root password"
     emerge --config mysql
-    rc-update add apache2 default > /dev/null 2>&1 && rc-update add mysql default > /dev/null 2>&1
+    rc-update add apache2 default > /dev/null 2>&1
+    rc-update add mysql default > /dev/null 2>&1
 }
 
 install_hyprland_packages() {
     log_info "✓ Enabling repository overlay for Hyprland desktop [ guru ]"
-    eselect repository enable guru > /dev/null 2>&1 && emaint sync -r guru > /dev/null 2>&1
+    eselect repository enable guru > /dev/null 2>&1
+    emaint sync -r guru > /dev/null 2>&1
     emerge procps pambase elogind sys-apps/dbus seatd eza > /dev/null 2>&1
     log_info "✓ Installing Hyprland desktop packages and kitty terminal"
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty > /dev/null 2>&1
-    rc-update add elogind boot > /dev/null 2>&1 && rc-update add dbus default > /dev/null 2>&1
+    rc-update add elogind boot > /dev/null 2>&1
+    rc-update add dbus default > /dev/null 2>&1
 }
 
 install_ohmyzsh_packages() {
     log_info "✓ Enabling repository overlay for Oh My Zsh [ r7l ]"
-    eselect repository enable r7l > /dev/null 2>&1 && emaint sync -r r7l > /dev/null 2>&1
-    log_info "✓ Installing [ oh-my-zsh, gentoo-zsh-completions, zsh-completions ] packages"
+    eselect repository enable r7l > /dev/null 2>&1
+    emaint sync -r r7l > /dev/null 2>&1
+    log_info "✓ Installing oh-my-zsh packages"
     emerge oh-my-zsh gentoo-zsh-completions zsh-completions > /dev/null 2>&1
     git clone https://github.com/romkatv/powerlevel10k.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/themes/powerlevel10k > /dev/null 2>&1
     git clone https://github.com/zsh-users/zsh-autosuggestions.git /usr/share/zsh/site-contrib/oh-my-zsh/custom/plugins/zsh-autosuggestions > /dev/null 2>&1
@@ -1088,11 +1092,11 @@ chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
 log_info "✓ Running services"
-rc-update add consolefont default > /dev/null 2>&1 && rc-update add numlock default > /dev/null 2>&1 && rc-update add sshd default > /dev/null 2>&1
+rc-update add consolefont default > /dev/null 2>&1
+rc-update add numlock default > /dev/null 2>&1
+rc-update add sshd default > /dev/null 2>&1
 
-if [ "$INSTALL_TYPE" == "gentoo" ]; then
-    install_ohmyzsh_packages
-elif [ "$INSTALL_TYPE" == "webserver" ]; then
+if [ "$INSTALL_TYPE" == "webserver" ]; then
     install_ohmyzsh_packages
     install_webserver_packages
 elif [ "$INSTALL_TYPE" == "hyprland" ]; then
