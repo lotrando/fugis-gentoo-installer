@@ -1,3 +1,5 @@
+# This file is part of the Lotrando FUGIS project.
+# It is used to configure the Gentoo Linux system.
 # package.use file -> /etc/portage/package.use
 
 # APP-ADMIN
@@ -8,9 +10,6 @@ app-eselect/eselect-php fpm apache2
 
 # DEV-LANG
 dev-lang/php apache2 bcmath curl fpm gd mysql mysqli pdo soap sockets spell sqlite xmlreader xmlwriter zip
-
-# MEDIA-FONTS
-media-fonts/terminus-font -ru-g
 
 # SYS-BOOT
 sys-boot/grub mount

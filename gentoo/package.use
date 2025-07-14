@@ -1,3 +1,5 @@
+# This file is part of the Lotrando FUGIS project.
+# It is used to configure the Gentoo Linux system.
 # package.use file -> /etc/portage/package.use
 
 # APP-ADMIN
@@ -5,9 +7,6 @@ app-admin/sudo -sendmail
 
 # APP-MISC
 app-misc/mc -slang unicode gpm sftp
-
-# MEDIA-FONTS
-media-fonts/terminus-font -ru-g
 
 # SYS-BOOT
 sys-boot/grub mount
