@@ -967,7 +967,7 @@ echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
 log_info "✓ Configuring MAKEOPTS"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
 
-log_info "✓ Update /etc/fstab file"
+log_info "✓ Update fstab"
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
 # /etc/fstab: static file system information.
 FSTAB_BLOCK_END
