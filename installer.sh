@@ -1097,7 +1097,6 @@ rc-update add numlock default > /dev/null 2>&1
 rc-update add sshd default > /dev/null 2>&1
 
 if [ "$INSTALL_TYPE" == "webserver" ]; then
-    install_ohmyzsh_packages
     install_webserver_packages
 elif [ "$INSTALL_TYPE" == "hyprland" ]; then
     install_ohmyzsh_packages
