@@ -1056,7 +1056,7 @@ log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
 
 log_info "✓ Create user $GENTOO_USER and his password"
-useradd -m -G audio,video,usb,cdrom,portage,users,wheel -s /bin/bash $GENTOO_USER
+useradd -m -G audio,video,usb,cdrom,portage,users,input,wheel -s /bin/bash $GENTOO_USER
 echo "$GENTOO_USER:$GENTOO_USER_PASSWORD" | chpasswd -c SHA256
 
 log_info "✓ Configuring SUDO"
