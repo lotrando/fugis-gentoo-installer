@@ -745,11 +745,36 @@ check_requirements() {
         fi
     done
 
-    log_info "✓ Check Internet connectivity"
-    if ! ping -c 1 8.8.8.8 &>/dev/null; then
-        log_error "No internet connectivity detected"
+    function check_internet() {
+
+        log_info "✓ Check Internet connectivity"
+
+        # Ping test
+        if ! ping -c 3 -W 2 8.8.8.8 &>/dev/null; then
+            log_error "Ping test failed"
+            return 1
+        fi
+
+        # DNS test
+        if ! nslookup google.com 1.1.1.1 &>/dev/null; then
+            log_error "DNS resolution failed"
+            return 1
+        fi
+
+        # HTTP test
+        if ! curl -s --head --request GET http://www.google.com | grep "200 OK" > /dev/null; then
+            log_error "HTTP connectivity failed"
+            return 1
+        fi
+
+        return 0
+    }
+
+    if ! check_internet; then
+        echo "No internet connectivity detected"
         exit 1
     fi
+
 }
 
 # Initialize clean log file
@@ -817,6 +842,7 @@ done
 
 # !!! Installation process !!!
 check_requirements
+check_internet
 detect_gpu
 optimize_cpu_flags
 optimize_makeopts
