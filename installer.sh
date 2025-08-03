@@ -769,12 +769,6 @@ check_requirements() {
 
         return 0
     }
-
-    if ! check_internet; then
-        echo "No internet connectivity detected"
-        exit 1
-    fi
-
 }
 
 # Initialize clean log file
