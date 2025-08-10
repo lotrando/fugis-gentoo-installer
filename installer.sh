@@ -378,47 +378,64 @@ setup_system() {
 
 # Main input settings function
 input_settings() {
+    detect_gpu
 
     # Installation type selection
     echo ""
     echo -e "${LIGHT_MAGENTA}${UNDERLINE}Installation type:${RESET}"
     echo ""
+
     echo -e "${YELLOW}1.${RESET} ${WHITE}Classic (Clear Gentoo linux)${RESET}"
     echo -e "${YELLOW}2.${RESET} ${WHITE}Webserver (Gentoo linux as LAMP server)${RESET}"
-    echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo Linux as Hyprland Desktop)${RESET}"
-    echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo Linux as Development Workstation)${RESET}"
 
+    if [ "$GPU_ACCELERATION" = true ]; then
+        echo -e "${YELLOW}3.${RESET} ${WHITE}Hyprland (Gentoo Linux as Hyprland Desktop)${RESET}"
+        echo -e "${YELLOW}4.${RESET} ${WHITE}Webdevelop (Gentoo Linux as Development Workstation)${RESET}"
+        ENABLED_CHOICES="1 2 3 4"
+    else
+        ENABLED_CHOICES="1 2"
+    fi
+
+    # Installation type selection loop
     while true; do
         echo ""
-        read -p "$(echo -e "${BLUE}Choose installation type (1-4):${RESET} ")" install_choice
+        read -p "$(echo -e "${BLUE}Choose installation type (${ENABLED_CHOICES}):${RESET} ")" install_choice
         case "$install_choice" in
-        1)
-            INSTALL_TYPE="gentoo"
-            INSTALL_TYPE_NAME="Classic (Clear Gentoo Linux)"
-            echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
-            break
-            ;;
-        2)
-            INSTALL_TYPE="webserver"
-            INSTALL_TYPE_NAME="Webserver (Gentoo Linux as LAMP server)"
-            echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
-            break
-            ;;
-        3)
-            INSTALL_TYPE="hyprland"
-            INSTALL_TYPE_NAME="Hyprland (Gentoo Linux as Hyprland Desktop)"
-            echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
-            break
-            ;;
-        4)
-            INSTALL_TYPE="webdevelop"
-            INSTALL_TYPE_NAME="Webdevelop (Gentoo Linux as Development Workstation)"
-            echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
-            break
-            ;;
-        *)
-            log_error "Invalid choice. Please try again."
-            ;;
+            1)
+                INSTALL_TYPE="gentoo"
+                INSTALL_TYPE_NAME="Classic (Clear Gentoo Linux)"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            2)
+                INSTALL_TYPE="webserver"
+                INSTALL_TYPE_NAME="Webserver (Gentoo Linux as LAMP server)"
+                echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                break
+                ;;
+            3)
+                if [ "$GPU_ACCELERATION" = true ]; then
+                    INSTALL_TYPE="hyprland"
+                    INSTALL_TYPE_NAME="Hyprland (Gentoo Linux as Hyprland Desktop)"
+                    echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                    break
+                else
+                    log_error "Invalid choice. Option requires GPU acceleration."
+                fi
+                ;;
+            4)
+                if [ "$GPU_ACCELERATION" = true ]; then
+                    INSTALL_TYPE="webdevelop"
+                    INSTALL_TYPE_NAME="Webdevelop (Gentoo Linux as Development Workstation)"
+                    echo -e "You have chosen: ${GREEN}${INSTALL_TYPE_NAME}${RESET}"
+                    break
+                else
+                    log_error "Invalid choice. Option requires GPU acceleration."
+                fi
+                ;;
+            *)
+                log_error "Invalid choice. Please try again."
+                ;;
         esac
     done
 
@@ -828,7 +845,7 @@ done
 # !!! Installation process !!!
 check_requirements
 check_internet
-detect_gpu
+#detect_gpu
 optimize_cpu_flags
 optimize_makeopts
 create_disk_partitions
