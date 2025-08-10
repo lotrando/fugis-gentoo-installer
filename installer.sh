@@ -114,7 +114,7 @@ detect_gpu() {
         return
     fi
 
-    log_info "✓ No acceleration GPU detected, using generic drivers"
+    log_info "✓ No acceleration GPU detected"
 }
 
 
@@ -419,7 +419,7 @@ input_settings() {
             3)
                 if [ "$GPU_ACCELERATION" = true ]; then
                     INSTALL_TYPE="hyprland"
-                    INSTALL_TYPE_NAME="Hyprland (Gentoo Linux as Hyprland Desktop)"
+                    INSTALL_TYPE_NAME="Hyprland (Gentoo Linux as Hyprland Desktop) requires GPU acceleration"
                     log_info "Selected installation type: ${INSTALL_TYPE_NAME}"
                     break
                 else
@@ -429,7 +429,7 @@ input_settings() {
             4)
                 if [ "$GPU_ACCELERATION" = true ]; then
                     INSTALL_TYPE="webdevelop"
-                    INSTALL_TYPE_NAME="Webdevelop (Gentoo Linux as Development Workstation)"
+                    INSTALL_TYPE_NAME="Webdevelop (Gentoo Linux as Development Workstation) requires GPU acceleration"
                     log_info "Selected installation type: ${INSTALL_TYPE_NAME}"
                     break
                 else
