@@ -96,23 +96,25 @@ optimize_cpu_flags() {
 # Detect GPU
 detect_gpu() {
     GPU_ACCELERATION=false
-    GENTOO_GPU="fbdev vesa"
+    GENTOO_GPU="fbdev vesa vmware"
 
-    if lspci | grep -i nvidia &>/dev/null; then
-        if lsmod | grep -q nvidia || [ -e /dev/dri/renderD128 ]; then
-            GPU_ACCELERATION=true
-            GENTOO_GPU="nvidia"
-        fi
-        log_info "✓ Detected NVIDIA GPU"
-    elif lspci | grep -i amd &>/dev/null; then
-        if lsmod | grep -q amdgpu || [ -e /dev/dri/renderD128 ]; then
-            GPU_ACCELERATION=true
-            GENTOO_GPU="amdgpu radeonsi"
-        fi
-        log_info "✓ Detected AMD GPU"
-    else
-        log_info "✓ No acceleration GPU detected, using generic drivers"
+    # Kontrola AMD GPU s akcelerací
+    if lsmod | grep -q amdgpu && [ -e /dev/dri/renderD128 ]; then
+        GPU_ACCELERATION=true
+        GENTOO_GPU="amdgpu radeonsi"
+        log_info "✓ Detected AMD GPU with acceleration"
+        return
     fi
+
+    # Kontrola NVIDIA GPU s akcelerací
+    if lsmod | grep -q nvidia && [ -e /dev/dri/renderD128 ]; then
+        GPU_ACCELERATION=true
+        GENTOO_GPU="nvidia"
+        log_info "✓ Detected NVIDIA GPU with acceleration"
+        return
+    fi
+
+    log_info "✓ No acceleration GPU detected, using generic drivers"
 }
 
 
@@ -846,7 +848,7 @@ done
 # !!! Installation process !!!
 check_requirements
 check_internet
-#detect_gpu
+detect_gpu
 optimize_cpu_flags
 optimize_makeopts
 create_disk_partitions
