@@ -3,9 +3,6 @@
  is a tweaked bash script that quickly install Gentoo Linux onto your hard drive.
 
 ---
-### Maximized output window screenshot
-<img src="screen.png" alt="Screenshot of settings before instalation procedure" />
-
 ### How to use this script ?
 - download minimal installation ISO from [gentoo.org](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
 - create bootable USB stick with this ISO
@@ -33,6 +30,7 @@ chmod +x installer.sh && ./installer.sh
 - it will take some time to compile the kernel and packages
 - reboot and use new clear Gentoo linux
 
+#### Clear Gentoo Installation Procedure log file on Virtualbox
 ```
 ╔═════════════════════════════════════════════╗
 ║  ███████╗ ██╗   ██╗  ██████╗  ██╗ ███████╗  ║
@@ -44,35 +42,124 @@ chmod +x installer.sh && ./installer.sh
 ║  Fast Universal Gentoo Installation Script  ║
 ║   Created by Lotrando (c) 2024-2025 v 1.9   ║
 ╚═════════════════════════════════════════════╝
-Choose installation type:
-Select disk:
-Enter UEFI/BOOT partition size:
-Choose SWAP type:
-Enter username:
-Enter user password:
-Enter root password:
-Enter hostname:
-Enter domain name:
-Choose kernel type:
-Enter GRUB gfx mode:
+[INFO] ✓ No acceleration GPU detected
+
+Installation type:
+
+1. Classic (Clear Gentoo Linux)
+2. Webserver (Gentoo Linux as LAMP server)
+3. Hyprland (Gentoo Linux as Hyprland Desktop)
+4. Webdevelop (Gentoo Linux as Development Workstation)
+
+Choose installation type (1-4): 1
+[INFO] Selected installation type: Classic (Clear Gentoo Linux)
+
+Detected disks:
+
+1. /dev/sda (  32G VBOX HARDDISK   )
+
+Select disk by number (1-1): 1
+You selected: /dev/sda (SSD/SATA)
+
+UEFI/BOOT partition size in MB:
+
+Enter UEFI/BOOT partition size [1024]:
+
+SWAP config:
+
+1. SWAP Off
+2. SWAP Partition
+
+Choose SWAP type (1-2): 2
+You have chosen: SWAP Partition
+
+Recommended swap partition size: 8192 MB
+Swap partition size in MB [8192]:
+
+Users and passwords:
+
+Enter username [user]: lotrando
+Enter user password [toor]:
+Enter root password [toor]:
+
+Setup computer:
+
+Enter hostname [gentoo]:
+Enter domain name [gentoo.dev]:
+
+Kernel sources selection:
+
+1. Zen (optimized for desktop)
+2. Gentoo (stable for webserver)
+3. Git (development kernel)
+
+Choose kernel type (1-3): 2
+You have chosen: Gentoo Sources
+
+GRUB resolution:
+
+Enter GRUB gfx mode [1920x1080x32]:
+
 Setup locales:
-Enter keymapP:
-Enter timezone:
-Select network interface:
-Select network configuration:
-```
-```
+
+1. English (en_US.UTF-8)
+2. Czech (cs_CZ.UTF-8)
+Select locale (1-2): 2
+Enter keymap [us]:
+Enter timezone [Europe/Prague]:
+
+Detected network interfaces:
+
+1. enp0s3
+
+Select network interface by number (1-1): 1
+You selected: enp0s3
+
+Network configuration:
+1. DHCP (automatic)
+2. Static IP
+
+Select network configuration (1-2): 1
+You selected: DHCP
+
+Summary of your settings:
+
+Installation type: Classic (Clear Gentoo Linux)
+Target disk: /dev/sda
+Disk type: SSD/SATA
+UEFI/BOOT size: 1024 MB
+Locale: cs_CZ.UTF-8
+Username: lotrando
+User password: toor
+Root password: toor
+Hostname: gentoo
+Domain name: gentoo.dev
+Kernel: Gentoo Sources
+GRUB Resolution: 1920x1080x32
+Timezone: Europe/Prague
+Keymap: us
+Network interface: enp0s3
+Network mode: dhcp
+Swap type: partition
+Swap partition: 8192 MB
+
+WARNING: Confirm will COMPLETELY WIPE the selected disk!
+
+Is everything set as you want? (y/n): y
+
 [INFO] ✓ Checkig if have root privileges
 [INFO] ✓ Checkig if script running in live environment
 [INFO] ✓ Check if all required commands are available
 [INFO] ✓ Check Internet connectivity
-[INFO] ✓ Detected XXX GPU
-[INFO] ✓ Detect CPU flags: XXX
-[INFO] ✓ Detect MAKEOPTS: XXX
+[INFO] ✓ No acceleration GPU detected, using generic drivers
+[INFO] ✓ Detect CPU flags: aes avx avx2 bmi1 bmi2 f16c fma3 mmx mmxext pclmul popcnt rdrand sha sse sse2 sse3 sse4_1 sse4_2 sse4a ssse3
+[INFO] ✓ Detect MAKEOPTS: -j6
 [INFO] ✓ Creating partitions on /dev/sda
+[INFO] ✓ Creating swap partition
 [INFO] ✓ Creating filesystems on UEFI/BOOT and ROOT partitions
 [INFO] ✓ Mounting created filesystems
-[INFO] ✓ Downloading: stage3-amd64-openrc-XXXXXXXXXXXXXXXX.tar.xz
+[INFO] ✓ Activating swap partition
+[INFO] ✓ Downloading: stage3-amd64-openrc-20250803T163732Z.tar.xz
 [INFO] ✓ Extracting downloaded stage
 [INFO] ✓ Copying repos.conf
 [INFO] ✓ Copying resolv.conf
@@ -86,158 +173,31 @@ Select network configuration:
 [INFO] ✓ Configuring GPU
 [INFO] ✓ Configuring CPU FLAGS
 [INFO] ✓ Configuring MAKEOPTS
-[INFO] ✓ Update /etc/fstab file
-[INFO] ✓ Setting hostname
+[INFO] ✓ Update fstab
+[INFO] ✓ Setting hostname to gentoo
 [INFO] ✓ Setting consolefont
-[INFO] ✓ Setting hosts
+[INFO] ✓ Setting hosts to gentoo.gentoo.dev
 [INFO] ✓ Setting network
 [INFO] ✓ Setting keymap
 [INFO] ✓ Generate locales
 [INFO] ✓ Setting timezone
-```
-```
 [INFO] ✓ Installing kernel packages
-
->>> Emerging (01) dev-libs/elfutils
->>> Emerging (02) app-arch/cpio
->>> Emerging (03) virtual/libelf
->>> Emerging (04) app-alternatives/cpio
->>> Emerging (05) sys-kernel/gentoo-sources
-```
-
-```
 [INFO] ✓ Installing firmware and genkernel
-
->>> Emerging (01) sys-kernel/linux-firmware
->>> Emerging (02) app-text/asciidoc
->>> Emerging (03) app-crypt/rhash
->>> Emerging (04) dev-libs/jsoncpp
->>> Emerging (05) net-dns/c-ares
->>> Emerging (06) net-libs/nghttp3
->>> Emerging (07) app-arch/libarchive
->>> Emerging (08) dev-libs/libuv
->>> Emerging (09) net-libs/nghttp2
->>> Emerging (10) net-libs/libpsl
->>> Emerging (11) net-misc/curl
->>> Emerging (12) dev-build/cmake
->>> Emerging (13) sys-kernel/genkernel
-```
-```
 [INFO] ✓ Starting generate kernel
-
-* kernel: >> Initializing ...
-*         >> Running 'make mrproper' ...
-*         >> Running 'make oldconfig' ...
-*         >> Re-running 'make oldconfig' due to changed kernel options ...
-*         >> Kernel version has changed (probably due to config change) since genkernel start:
-*            We are now building Linux kernel 6.15.4-gentoo-x86_64 for x86_64 ...
-*         >> Compiling 6.15.4-gentoo-x86_64 bzImage ...
-*         >> Compiling 6.15.4-gentoo-x86_64 modules ...
-*         >> Installing 6.15.4-gentoo-x86_64 modules (and stripping) ...
-*         >> Generating module dependency data ...
-*         >> Compiling out-of-tree module(s) ...
-*         >> Saving config of successful build to '/etc/kernels/kernel-config-6.15.4-gentoo-x86_64' ...
-
-* initramfs: >> Initializing ...
-*         >> Appending devices cpio data ...
-*         >> Appending base_layout cpio data ...
-*         >> Appending util-linux cpio data ...
-*         >> Appending eudev cpio data ...
-*         >> Appending auxiliary cpio data ...
-*         >> Appending busybox cpio data ...
-*         >> Appending modprobed cpio data ...
-*         >> Appending modules cpio data ...
-*         >> Deduping cpio ...
-*         >> Pre-generating initramfs' /etc/ld.so.cache ...
-*         >> Compressing cpio data (.xz) ...
-
-* Kernel compiled successfully!
-```
-```
 [INFO] ✓ Installing important packages
-
->>> Emerging (01) sys-apps/hwdata
->>> Emerging (02) dev-lang/python-exec
->>> Emerging (03) app-text/mandoc
->>> Emerging (04) sys-fs/dosfstools
->>> Emerging (05) sys-fs/fuse-common
->>> Emerging (06) dev-libs/gobject-introspection-common
->>> Emerging (07) sys-libs/efivar
->>> Emerging (08) media-libs/libpng
->>> Emerging (09) app-text/lowdown
->>> Emerging (10) dev-python/pygments
->>> Emerging (11) dev-lang/python
->>> Emerging (12) dev-libs/libpcre
->>> Emerging (13) media-libs/freetype
->>> Emerging (14) dev-lang/nasm
->>> Emerging (15) sys-fs/f2fs-tools
->>> Emerging (16) sys-libs/slang
->>> Emerging (17) dev-python/olefile
->>> Emerging (18) app-text/xmlto
->>> Emerging (19) virtual/libudev
->>> Emerging (20) x11-base/xorg-proto
->>> Emerging (21) sys-fs/fuse
->>> Emerging (22) sys-fs/lvm2
->>> Emerging (23) sys-apps/pciutils
->>> Emerging (24) media-libs/libjpeg-turbo
->>> Emerging (25) sys-boot/efibootmgr
->>> Emerging (26) dev-python/pillow
->>> Emerging (27) x11-apps/bdftopcf
->>> Emerging (28) sys-boot/grub
->>> Emerging (29) dev-python/docutils
->>> Emerging (30) media-fonts/terminus-font
->>> Emerging (31) dev-libs/glib
->>> Emerging (32) x11-misc/shared-mime-info
->>> Emerging (33) app-misc/mc
->>> Emerging (34) dev-util/desktop-file-utils
->>> Emerging (35) sys-process/btop
->>> Emerging (36) app-admin/sudo
-```
-```
 [INFO] ✓ Create root password
-[INFO] ✓ Create user $GENTOO_USER and his password
+[INFO] ✓ Create user realist and his password
 [INFO] ✓ Configuring SUDO
 [INFO] ✓ Setting GRUB resolution to 1920x1080x32
-```
-```
 [INFO] ✓ Installing GRUB
-
-Installing for x86_64-efi platform.
-Installation finished. No error reported.
-```
-```
 [INFO] ✓ Download GRUB background png
 [INFO] ✓ Create GRUB config file
-
-Generating grub configuration file ...
-Found background: /boot/grub/grub.png
-Found linux image: /boot/vmlinuz-6.15.4-gentoo-x86_64
-Found initrd image: /boot/amd-uc.img
-Warning: os-prober will not be executed to detect other bootable partitions.
-Systems on them will not be added to the GRUB boot configuration.
-Check GRUB_DISABLE_OS_PROBER documentation entry.
-Adding boot menu entry for UEFI Firmware Settings ...
-done
-```
-```
 [INFO] ✓ Download gentoo configuration files archive
 [INFO] ✓ Extracting downloaded configuration files
-```
-```
 [INFO] ✓ Running services
-
- * service consolefont added to runlevel default
- * service numlock added to runlevel default
- * service sshd added to runlevel default
-```
-```
-[INFO] ✓ Installing additional packages and configs
-
->>> Emerging additional (X) packages by installation type
-```
-```
 [INFO] ✓ Removing chroot script
 [INFO] ✓ Gentoo Linux installation completed successfully!
+
 ╔════════════════════════════════════════════════════════════════╗
 ║                    INSTALLATION COMPLETE !                     ║
 ║    Your Gentoo Linux system has been successfully installed    ║
