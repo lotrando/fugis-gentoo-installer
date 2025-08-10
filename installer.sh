@@ -1157,12 +1157,12 @@ echo -e "${GREEN}╠════════════════════
 echo -e "${GREEN}║                  sudo emerge -avNUDu @world                    ║${RESET}"
 if [[ "$INSTALL_TYPE" == "webserver" ]]; then
     echo -e "${GREEN}║                                                                ║${RESET}"
-    echo -e "${GREEN}║    for config phpmyadmin secret blow fish token after reboot   ║${RESET}"
-    echo -e "${GREEN}║           run editor as root sudo nano with file path:         ║${RESET}"
-    echo -e "${GREEN}║       /var/www/localhost/htdocs/phpmyadmin/config.inc.php      ║${RESET}"
-    echo -e "${GREEN}║             uncomment and set line in config file              ║${RESET}"
+    echo -e "${GREEN}║          for config phpmyadmin secret blow fish token          ║${RESET}"
+    echo -e "${GREEN}║           now run nano editor as root with file path           ║${RESET}"
+    echo -e "${GREEN}║ /mnt/gentoo/var/www/localhost/htdocs/phpmyadmin/config.inc.php ║${RESET}"
+    echo -e "${GREEN}║              remove and set line in config file                ║${RESET}"
     echo -e "${GREEN}║                 cfg['blowfish_secret'] = '';                   ║${RESET}"
-    echo -e "${GREEN}║            Generate your own blow fish key on page             ║${RESET}"
+    echo -e "${GREEN}║           with your generated blow fish key on page            ║${RESET}"
     echo -e "${GREEN}║   https://www.motorsportdiesel.com/tools/blowfish-salt/pma/    ║${RESET}"
 fi
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${RESET}"
