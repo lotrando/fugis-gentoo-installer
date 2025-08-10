@@ -2,6 +2,13 @@
 # It is used to configure the Gentoo Linux system.
 # package.license file -> /etc/portage/package.license
 
+# APP-ARCH
+app-arch/lha lha
+app-arch/unrar unRAR
+app-arch/rar RAR
+
+# APP-EDITORS
+app-editors/vscode Microsoft-vscode
+
 # SYS-KERNEL
 sys-kernel/linux-firmware linux-fw-redistributable no-source-code
-

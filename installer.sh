@@ -102,18 +102,9 @@ detect_gpu() {
     elif lspci | grep -i amd &>/dev/null; then
         GENTOO_GPU="amdgpu radeonsi"
         log_info "✓ Detected AMD GPU"
-    elif lspci | grep -i intel &>/dev/null; then
-        GENTOO_GPU="intel i965"
-        log_info "✓ Detected Intel GPU"
-    elif lspci | grep -i vmware &>/dev/null; then
-        GENTOO_GPU="vmware"
-        log_info "✓ Detected VMware virtual GPU"
-    elif lspci | grep -i virtualbox &>/dev/null || lspci | grep -i "innotek" &>/dev/null; then
-        GENTOO_GPU="virtualbox"
-        log_info "✓ Detected VirtualBox virtual GPU"
     else
         GENTOO_GPU="fbdev vesa"
-        log_info "✓ No specific GPU detected, using generic drivers"
+        log_info "✓ No acceleration GPU detected, using generic drivers"
     fi
 }
 
