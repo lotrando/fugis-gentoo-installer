@@ -1,0 +1,3 @@
+# This file is part of the Lotrando FUGIS project.
+# It is used to configure the Gentoo Linux system.
+# package.mask file -> /etc/portage/package.mask

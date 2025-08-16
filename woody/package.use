@@ -1,0 +1,144 @@
+# This file is part of the Lotrando FUGIS project.
+# It is used to configure the Gentoo Linux system.
+# package.use file -> /etc/portage/package.use
+
+# PYTHON TARGETS
+*/* PYTHON_TARGETS: python3_11 python3_12
+
+# APP-ARCH
+app-arch/xz-utils pgo
+
+# APP-CRYPT
+app-crypt/gcr gtk
+
+# APP-EMULATION
+app-emulation/qemu sdl opengl virgl virtfs usb udbredir gtk
+
+# APP-ESELECT
+app-eselect/eselect-php apache2 fpm
+
+# APP-MISC
+app-misc/mc -slang unicode gpm sftp
+
+# APP-TEXT
+app-text/poppler cairo
+app-text/xmlto text
+
+# DEV-CPP
+dev-cpp/cairomm X
+dev-cpp/gtkmm X
+
+# DEV-LANG
+dev-lang/php apache2 bcmath curl exif fpm gd mysql mysqli pdo soap sockets spell sqlite xmlreader xmlwriter zip
+
+# DEV-LIBS
+dev-libs/libdbusmenu gtk3
+dev-libs/libgit2 -git
+
+# DEV-PYTHON
+dev-python/pycairo X
+dev-python/pyqt5 widgets gui opengl declarative network
+
+# DEV-QT
+dev-qt/qtgui egl X
+dev-qt/qtbase opengl accessibility X
+dev-qt/qtdeclarative opengl accessibility
+dev-qt/qtwayland accessibility
+dev-qt/qt5compat qml
+dev-qt/qtmultimedia opengl
+dev-qt/qttools opengl
+
+# DEV-UTIL
+dev-util/hip video_cards_amdgpu
+
+# DEV-PYTHON
+dev-python/pillow webp tiff
+
+# GNOME-BASE
+gnome-base/gvfs cdda http udisks nfs archive fuse
+
+# GUI-APPS
+gui-apps/rofi-wayland drun windowmode
+gui-apps/waybar pulseaudio udev network tray upower wifi evdev
+gui-apps/wlogout zsh-completions
+
+# GUI-LIBS
+gui-libs/wlroots -X tinywl 11-backend
+gui-libs/xdg-desktop-portal-hyprland screencast
+
+# GUI-WM
+gui-wm/hyprland X
+
+# MEDIA-FONTS
+media-fonts/terminus-font -ru-g
+
+# MEDIA-GFX
+media-gfx/imagemagick djvu jpeg svg xml zip
+
+# MEDIA-LIBS
+media-libs/libepoxy X
+media-libs/libglvnd X
+media-libs/libsdl2 opengl gles2 X joystick
+media-libs/libvpx postproc
+media-libs/mesa X vaapi video_cards_radeon
+media-libs/vulkan-loader X
+media-libs/gst-plugins-base opengl
+media-libs/babl introspection lcms
+media-libs/gegl cairo introspection lcms
+media-libs/harfbuzz icu
+
+# MEDIA-PLUGINS
+media-plugins/audacious-plugins gtk -qt6 nls pipewire cdda cue ffmpeg flac http lame libnotify modplug mp3 opus sndfile wavpack
+
+# MEDIA-SOUND
+media-sound/audacious gtk -qt6
+
+# MEDIA-VIDEO
+media-video/ffmpeg modplug mp3 opus pulseaudio svg v4l openh264 libv4l x264 x265 xvid webp
+media-video/mpv cdda dvd jpeg
+media-video/pipewire sound-server v4l ffmpeg extra pipewire-alsa
+
+# NET-P2P
+net-p2p/transmission appindicator qt6
+
+# NET-LIBS
+net-libs/nodejs npm
+
+# SCI-ML
+sci-ml/ollama rocm
+
+# SYS-APPS
+sys-apps/eza -git
+sys-apps/xdg-desktop-portal screencast
+
+# SYS-BOOT
+sys-boot/grub mount
+
+# SYS-DEVEL
+sys-devel/binutils pgo
+sys-devel/gcc graphite lto pgo
+
+# SYS-KERNEL
+sys-kernel/linux-firmware initramfs
+sys-kernel/zen-sources symlink
+sys-kernel/genkernel plymouth
+
+# SYS-LIBS
+sys-libs/zlib minizip
+
+# WWW-CLIENT
+www-client/firefox pulseaudio lto pgo
+
+# X11-LIBS
+x11-libs/cairo X
+x11-libs/gtk+ X
+x11-libs/libdrm video_cards_radeon
+x11-libs/libxkbcommon X
+x11-libs/pango X
+x11-libs/libfm gtk
+
+# XFCE-BASE
+xfce-base/tumbler epub ffmpeg jpeg odf pdf
+
+kde-frameworks/sonnet qml
+sys-boot/plymouth drm

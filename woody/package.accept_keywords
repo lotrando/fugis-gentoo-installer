@@ -1,0 +1,5 @@
+# This file is part of the Lotrando FUGIS project.
+# It is used to configure the Gentoo Linux system.
+# package.accept_keywords file -> /etc/portage/package.accept_keywords
+
+
