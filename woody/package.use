@@ -8,6 +8,9 @@
 # APP-ARCH
 app-arch/xz-utils pgo
 
+# APP-BENCHMARKS
+app-benchmarks/glmark2 gles2
+
 # APP-CRYPT
 app-crypt/gcr gtk
 
@@ -19,6 +22,10 @@ app-eselect/eselect-php apache2 fpm
 
 # APP-MISC
 app-misc/mc -slang unicode gpm sftp
+app-misc/fastfetch drm imagemagick opengl
+
+# APP-SHELLS
+app-shells/bash pgo
 
 # APP-TEXT
 app-text/poppler cairo
@@ -63,7 +70,7 @@ gui-apps/waybar pulseaudio udev network tray upower wifi evdev
 gui-apps/wlogout zsh-completions
 
 # GUI-LIBS
-gui-libs/wlroots -X tinywl 11-backend
+gui-libs/wlroots -X tinywl x11-backend
 gui-libs/xdg-desktop-portal-hyprland screencast
 
 # GUI-WM
@@ -104,6 +111,9 @@ net-p2p/transmission appindicator qt6
 # NET-LIBS
 net-libs/nodejs npm
 
+# NET-WIRELESS
+net-wireless/wpa_supplicant gui tkip
+
 # SCI-ML
 sci-ml/ollama rocm
 
@@ -127,7 +137,7 @@ sys-kernel/genkernel plymouth
 sys-libs/zlib minizip
 
 # WWW-CLIENT
-www-client/firefox pulseaudio lto pgo
+www-client/firefox hwaccel wasm-sandbox system-pipewire lto pgo
 
 # X11-LIBS
 x11-libs/cairo X
