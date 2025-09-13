@@ -1080,7 +1080,7 @@ log_info "✓ Starting generate kernel"
 genkernel all > /dev/null 2>&1
 
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop app-misc/mc > /dev/null 2>&1
+emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop elogind pam pambase app-misc/mc > /dev/null 2>&1
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
@@ -1118,7 +1118,6 @@ wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
 
 log_info "✓ Extracting downloaded configuration files"
 unzip -qo dotfiles.zip
-mkdir -p /home/$GENTOO_USER/.config/openrc
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
