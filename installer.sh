@@ -1118,6 +1118,7 @@ wget -q "${GENTOO_INSTALLER_URL}/${INSTALL_TYPE}/dotfiles.zip"
 
 log_info "✓ Extracting downloaded configuration files"
 unzip -qo dotfiles.zip
+mkdir -p /home/$GENTOO_USER/.config/openrc
 chown -R $GENTOO_USER:$GENTOO_USER /home/$GENTOO_USER
 rm -f dotfiles.zip
 
