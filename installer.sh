@@ -1124,6 +1124,7 @@ rm -f dotfiles.zip
 log_info "✓ Running services"
 rc-update add consolefont default > /dev/null 2>&1
 rc-update add numlock default > /dev/null 2>&1
+rc-update add elogind default > /dev/null 2>&1
 rc-update add sshd default > /dev/null 2>&1
 
 if [ "$INSTALL_TYPE" == "webserver" ]; then
