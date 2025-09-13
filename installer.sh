@@ -117,7 +117,6 @@ detect_gpu() {
     log_info "✓ No acceleration GPU detected"
 }
 
-
 # Convert Netmask to CDIR
 netmask_to_cidr() {
     local netmask="$1"
