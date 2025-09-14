@@ -928,7 +928,9 @@ install_hyprland_packages() {
     log_info "✓ Enabling repository overlay for Hyprland desktop [ guru ]"
     eselect repository enable guru > /dev/null 2>&1
     emaint sync -r guru > /dev/null 2>&1
-    emerge procps seatd sys-apps/dbus > /dev/null 2>&1
+    log_info "✓ Hyprland desktop need GCC v15 updating GCC"
+    emerge procps seatd sys-apps/dbus gcc > /dev/null 2>&1
+    eselect gcc set 2 && source /etc/profile
     log_info "✓ Installing Hyprland desktop packages and kitty terminal"
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty waybar wlogout rofi-wayland mpv eza > /dev/null 2>&1
     rc-update add dbus default > /dev/null 2>&1
