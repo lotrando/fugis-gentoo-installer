@@ -920,8 +920,8 @@ log_warning() {
 
 install_classic_packages() {
     log_info "✓ Installing classic packages"
-    emerge nano --noreplace > /dev/null 2>&1
-    rc-update add elogind boot > /dev/null 2>&1
+    emerge pam pambase > /dev/null 2>&1
+    rc-update add elogind default > /dev/null 2>&1
 }
 
 install_hyprland_packages() {
