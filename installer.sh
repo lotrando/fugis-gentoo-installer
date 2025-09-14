@@ -920,7 +920,7 @@ log_warning() {
 
 install_classic_packages() {
     log_info "✓ Installing classic packages"
-    emerge pam pambase > /dev/null 2>&1
+    emerge elogind pam pambase > /dev/null 2>&1
     rc-update add elogind default > /dev/null 2>&1
 }
 
@@ -1088,7 +1088,7 @@ log_info "✓ Starting generate kernel"
 genkernel all > /dev/null 2>&1
 
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop elogind pam pambase app-misc/mc nano --noreplace > /dev/null 2>&1
+emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop app-misc/mc nano --noreplace > /dev/null 2>&1
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
