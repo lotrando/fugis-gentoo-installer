@@ -918,6 +918,12 @@ log_warning() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $message" >> "${GENTOO_LOG_FILE}"
 }
 
+install_classic_packages() {
+    log_info "✓ Installing classic packages"
+    emerge nano --noreplace > /dev/null 2>&1
+    rc-update add elogind boot > /dev/null 2>&1
+}
+
 install_webserver_packages() {
     log_info "✓ Installing Webserver packages"
     emerge phpmyadmin dev-db/mysql dev-lang/php > /dev/null 2>&1
@@ -941,11 +947,11 @@ install_hyprland_packages() {
     log_info "✓ Enabling repository overlay for Hyprland desktop [ guru ]"
     eselect repository enable guru > /dev/null 2>&1
     emaint sync -r guru > /dev/null 2>&1
-    emerge procps pambase elogind sys-apps/dbus seatd eza > /dev/null 2>&1
+    emerge procps seatd sys-apps/dbus > /dev/null 2>&1
     log_info "✓ Installing Hyprland desktop packages and kitty terminal"
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty > /dev/null 2>&1
-    rc-update add elogind boot > /dev/null 2>&1
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty waybar wlogout rofi-wayland mpv eza > /dev/null 2>&1
     rc-update add dbus default > /dev/null 2>&1
+
 }
 
 install_ohmyzsh_packages() {
@@ -1080,7 +1086,7 @@ log_info "✓ Starting generate kernel"
 genkernel all > /dev/null 2>&1
 
 log_info "✓ Installing important packages"
-emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop elogind pam pambase app-misc/mc > /dev/null 2>&1
+emerge f2fs-tools dosfstools grub terminus-font sudo eselect-repository btop elogind pam pambase app-misc/mc nano --noreplace > /dev/null 2>&1
 
 log_info "✓ Create root password"
 echo "root:$GENTOO_ROOT_PASSWORD" | chpasswd -c SHA256
@@ -1124,10 +1130,12 @@ rm -f dotfiles.zip
 log_info "✓ Running services"
 rc-update add consolefont default > /dev/null 2>&1
 rc-update add numlock default > /dev/null 2>&1
-rc-update add elogind default > /dev/null 2>&1
 rc-update add sshd default > /dev/null 2>&1
 
-if [ "$INSTALL_TYPE" == "webserver" ]; then
+
+if [ "$INSTALL_TYPE" == "gentoo" ]; then
+    install_classic_packages
+elif [ "$INSTALL_TYPE" == "webserver" ]; then
     install_webserver_packages
 elif [ "$INSTALL_TYPE" == "hyprland" ]; then
     install_ohmyzsh_packages
