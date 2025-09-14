@@ -924,6 +924,17 @@ install_classic_packages() {
     rc-update add elogind boot > /dev/null 2>&1
 }
 
+install_hyprland_packages() {
+    log_info "✓ Enabling repository overlay for Hyprland desktop [ guru ]"
+    eselect repository enable guru > /dev/null 2>&1
+    emaint sync -r guru > /dev/null 2>&1
+    emerge procps seatd sys-apps/dbus > /dev/null 2>&1
+    log_info "✓ Installing Hyprland desktop packages and kitty terminal"
+    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty waybar wlogout rofi-wayland mpv eza > /dev/null 2>&1
+    rc-update add dbus default > /dev/null 2>&1
+
+}
+
 install_webserver_packages() {
     log_info "✓ Installing Webserver packages"
     emerge phpmyadmin dev-db/mysql dev-lang/php > /dev/null 2>&1
@@ -941,17 +952,6 @@ install_webserver_packages() {
     emerge --config mysql
     rc-update add apache2 default > /dev/null 2>&1
     rc-update add mysql default > /dev/null 2>&1
-}
-
-install_hyprland_packages() {
-    log_info "✓ Enabling repository overlay for Hyprland desktop [ guru ]"
-    eselect repository enable guru > /dev/null 2>&1
-    emaint sync -r guru > /dev/null 2>&1
-    emerge procps seatd sys-apps/dbus > /dev/null 2>&1
-    log_info "✓ Installing Hyprland desktop packages and kitty terminal"
-    emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty waybar wlogout rofi-wayland mpv eza > /dev/null 2>&1
-    rc-update add dbus default > /dev/null 2>&1
-
 }
 
 install_ohmyzsh_packages() {
@@ -1131,7 +1131,6 @@ log_info "✓ Running services"
 rc-update add consolefont default > /dev/null 2>&1
 rc-update add numlock default > /dev/null 2>&1
 rc-update add sshd default > /dev/null 2>&1
-
 
 if [ "$INSTALL_TYPE" == "gentoo" ]; then
     install_classic_packages
