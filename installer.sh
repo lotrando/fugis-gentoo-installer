@@ -1137,11 +1137,14 @@ rc-update add sshd default > /dev/null 2>&1
 if [ "$INSTALL_TYPE" == "gentoo" ]; then
     install_classic_packages
 elif [ "$INSTALL_TYPE" == "webserver" ]; then
+    install_classic_packages
     install_webserver_packages
 elif [ "$INSTALL_TYPE" == "hyprland" ]; then
+    install_classic_packages
     install_ohmyzsh_packages
     install_hyprland_packages
 elif [ "$INSTALL_TYPE" == "webdevelop" ]; then
+    install_classic_packages
     install_ohmyzsh_packages
     install_hyprland_packages
     install_webserver_packages
