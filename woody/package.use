@@ -45,6 +45,7 @@ dev-libs/libgit2 -git
 # DEV-PYTHON
 dev-python/pycairo X
 dev-python/pyqt5 widgets gui opengl declarative network
+dev-python/pyqt6 widgets gui opengl declarative network
 
 # DEV-QT
 dev-qt/qtgui egl X
@@ -85,7 +86,8 @@ media-gfx/imagemagick djvu jpeg svg xml zip
 # MEDIA-LIBS
 media-libs/libepoxy X
 media-libs/libglvnd X
-media-libs/libsdl2 opengl gles2 X joystick
+media-libs/libsdl opengl X
+media-libs/libsdl2 gles2 opengl X joystick
 media-libs/libvpx postproc
 media-libs/mesa X vaapi video_cards_radeon
 media-libs/vulkan-loader X
@@ -93,6 +95,7 @@ media-libs/gst-plugins-base opengl
 media-libs/babl introspection lcms
 media-libs/gegl cairo introspection lcms
 media-libs/harfbuzz icu
+media-libs/freetype harfbuzz
 
 # MEDIA-PLUGINS
 media-plugins/audacious-plugins gtk -qt6 nls pipewire cdda cue ffmpeg flac http lame libnotify modplug mp3 opus sndfile wavpack
@@ -103,7 +106,7 @@ media-sound/audacious gtk -qt6
 # MEDIA-VIDEO
 media-video/ffmpeg modplug mp3 opus pulseaudio svg v4l openh264 libv4l x264 x265 xvid webp
 media-video/mpv cdda dvd jpeg
-media-video/pipewire sound-server v4l ffmpeg extra pipewire-alsa
+media-video/pipewire sound-server v4l ffmpeg extra pipewire-alsa flatpak
 
 # NET-P2P
 net-p2p/transmission appindicator qt6
@@ -115,7 +118,7 @@ net-libs/nodejs npm
 net-wireless/wpa_supplicant gui tkip
 
 # SCI-ML
-sci-ml/ollama rocm
+#sci-ml/ollama rocm
 
 # SYS-APPS
 sys-apps/eza -git
