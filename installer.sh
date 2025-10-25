@@ -98,7 +98,7 @@ detect_gpu() {
     GPU_ACCELERATION=false
     GENTOO_GPU="fbdev vesa vmware"
 
-    # Kontrola AMD GPU s akcelerací
+    # AMD GPU
     if lsmod | grep -q amdgpu && [ -e /dev/dri/renderD128 ]; then
         GPU_ACCELERATION=true
         GENTOO_GPU="amdgpu radeonsi"
@@ -106,7 +106,7 @@ detect_gpu() {
         return
     fi
 
-    # Kontrola NVIDIA GPU s akcelerací
+    # NVIDIA GPU
     if lsmod | grep -q nvidia && [ -e /dev/dri/renderD128 ]; then
         GPU_ACCELERATION=true
         GENTOO_GPU="nvidia"
@@ -707,7 +707,7 @@ input_settings() {
                 read -p "$(echo -e "${BLUE}Enter netmask [${TARGET_MASK:-255.255.255.0}]:${RESET} ")" input
                 TARGET_MASK=${input:-${TARGET_MASK:-255.255.255.0}}
                 if validate_ip "$TARGET_MASK"; then
-                    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK") # Teď až zde!
+                    TARGET_CIDR=$(netmask_to_cidr "$TARGET_MASK")
                     break
                 else
                     log_error "Invalid netmask format"
