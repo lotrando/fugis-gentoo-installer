@@ -634,10 +634,12 @@ input_settings() {
         case "$locale_choice" in
         1)
             GENTOO_LOCALE="en_US.UTF-8"
+            L10N="en"
             break
             ;;
         2)
             GENTOO_LOCALE="cs_CZ.UTF-8"
+            L10N="cs"
             break
             ;;
         *) log_error "Invalid choice. Please try again." ;;
@@ -868,6 +870,7 @@ GENTOO_INSTALLER_URL="$GENTOO_INSTALLER_URL"
 GENTOO_KERNEL="$GENTOO_KERNEL"
 GENTOO_KEYMAP="$GENTOO_KEYMAP"
 GENTOO_LOCALE="$GENTOO_LOCALE"
+GENTOO_L10N="$L10N"
 GENTOO_LOG_FILE="$GENTOO_LOG_FILE"
 GENTOO_MAKEOPTS="$GENTOO_MAKEOPTS"
 GENTOO_ROOT_PASSWORD="$GENTOO_ROOT_PASSWORD"
@@ -1005,6 +1008,9 @@ echo CPU_FLAGS_X86=\"$GENTOO_CPUFLAGS\" >> make.conf
 
 log_info "✓ Configuring MAKEOPTS"
 echo MAKEOPTS=\"$GENTOO_MAKEOPTS\" >> make.conf
+
+log_info "✓ Configuring L10N"
+echo L10N=\"$GENTOO_L10N\" >> make.conf
 
 log_info "✓ Update fstab"
 cat > /etc/fstab << 'FSTAB_BLOCK_END'
