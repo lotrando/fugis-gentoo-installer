@@ -930,7 +930,8 @@ install_hyprland_packages() {
     emaint sync -r guru > /dev/null 2>&1
     log_info "✓ Hyprland desktop need GCC v15 updating GCC"
     emerge procps seatd sys-apps/dbus gcc > /dev/null 2>&1
-    eselect gcc set 2 && source /etc/profile
+    eselect gcc set 2 > /dev/null 2>&1
+    source /etc/profile > /dev/null 2>&1
     log_info "✓ Installing Hyprland desktop packages and kitty terminal"
     emerge hyprland hyprland-contrib xdg-desktop-portal-hyprland hyprlock hypridle hyprpaper hyprpicker kitty waybar wlogout rofi-wayland mpv eza > /dev/null 2>&1
     rc-update add dbus default > /dev/null 2>&1
